@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, SkipForward, Trash2, Upload, Volume2, VolumeX } from 'lucide-react'
+import { useArtworkTheme } from './useArtworkTheme.ts'
 import { useJukebox } from './useJukebox.ts'
 
 const read = (key: string, fallback: string) => localStorage.getItem(key) ?? fallback
@@ -20,6 +21,7 @@ export default function App() {
   const library = state?.library ?? []
   const playing = state?.playing ?? null
   const track = library.find(t => t.id === playing?.trackId)
+  useArtworkTheme(track?.art)
   // Position comes from the shared clock, so every screen in the saloon agrees.
   const elapsed = playing ? Math.max(0, (playing.pausedAt ?? serverNow()) - playing.startedAt) / 1000 : 0
   const pct = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0
@@ -96,13 +98,13 @@ export default function App() {
 
       <main className="mx-auto max-w-3xl space-y-6 p-4">
         <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-amber-500/80">Now playing</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</p>
           <h2 className="mt-1 truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
           <p className="text-sm text-neutral-400">
             {track ? `${track.artist} · ${track.year}` : 'Add a tune below to start the night'}
           </p>
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
-            <div className="h-full bg-amber-500 transition-[width] duration-1000 ease-linear" style={{ width: `${pct}%` }} />
+            <div className="h-full bg-accent transition-[width] duration-1000 ease-linear" style={{ width: `${pct}%` }} />
           </div>
           <div className="mt-3 flex items-center gap-2">
             <button
@@ -147,7 +149,7 @@ export default function App() {
                   setVolume(Number(e.target.value))
                   localStorage.setItem('tivi.volume', e.target.value)
                 }}
-                className="w-24 accent-amber-500"
+                className="w-24 accent-[var(--accent)]"
               />
             </div>
           </div>
@@ -203,7 +205,7 @@ export default function App() {
             </label>
           </div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-400 hover:bg-amber-500/20">
+            <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/20">
               <Upload size={13} /> Add from this device
               <input
                 type="file"
@@ -226,12 +228,12 @@ export default function App() {
               type="button"
               onClick={() => void addLink()}
               disabled={!link || !!busy}
-              className="rounded-md bg-amber-500 px-3 py-1 text-xs font-medium text-neutral-950 hover:bg-amber-400 disabled:opacity-40"
+              className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-neutral-950 hover:brightness-110 disabled:opacity-40"
             >
               Add
             </button>
           </div>
-          {busy && <p className="mb-2 text-xs text-amber-500">{busy}</p>}
+          {busy && <p className="mb-2 text-xs text-accent">{busy}</p>}
           {note && <p className="mb-2 text-xs text-red-400">{note}</p>}
           <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
             {library.map(t => (
@@ -245,7 +247,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => addTrack(t.id)}
-                  className="rounded-md bg-amber-500 px-3 py-1 text-xs font-medium text-neutral-950 hover:bg-amber-400"
+                  className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-neutral-950 hover:brightness-110"
                 >
                   Add
                 </button>
@@ -260,14 +262,14 @@ export default function App() {
       </main>
 
       {playing && !sound && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-amber-500/30 bg-neutral-900/95 px-4 py-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 border-t border-accent/30 bg-neutral-900/95 px-4 py-3 backdrop-blur">
           <button
             type="button"
             onClick={() => {
               setSound(true)
               sync()
             }}
-            className="mx-auto flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-amber-400"
+            className="mx-auto flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-neutral-950 hover:brightness-110"
           >
             <Volume2 size={16} /> Tap to turn on the speakers
           </button>

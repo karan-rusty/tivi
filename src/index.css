@@ -1,9 +1,11 @@
 @import "tailwindcss";
 @import "@fontsource/limelight/latin-400.css";
 
-/* The wordmark face: art-deco marquee, one weight, used nowhere else. */
 @theme {
+  /* The wordmark face: art-deco marquee, one weight, used nowhere else. */
   --font-display: "Limelight", ui-serif, serif;
+  /* Driven at runtime by the current track's cover; saloon amber until one is playing. */
+  --color-accent: var(--accent, #f59e0b);
 }
 
 html {
