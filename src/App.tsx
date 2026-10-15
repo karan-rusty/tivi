@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Pause, Play, SkipForward, Trash2, Upload, Volume2, VolumeX } from 'lucide-react'
+import { Pause, Play, SkipForward, Trash2, Upload } from 'lucide-react'
 import { Artwork } from './Artwork.tsx'
 import { useArtworkTheme } from './useArtworkTheme.ts'
 import { useJukebox } from './useJukebox.ts'
@@ -117,14 +117,29 @@ export default function App() {
       <main
         className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 p-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[auto_minmax(0,1fr)_22rem] lg:grid-rows-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:p-4`}
       >
-        {/* The name, set as a sign down the gutter and lit by whatever record is on. */}
+        {/* The name as a sign down the gutter, with the volume panel under it. */}
         <div className="hidden items-center justify-center lg:row-span-2 lg:flex">
-          <h1
-            className="font-display text-3xl leading-none tracking-[0.35em] text-neutral-400"
-            style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', textShadow: '0 0 26px var(--accent, #f59e0b)' }}
-          >
-            tivi
-          </h1>
+          <div className="flex flex-col items-center gap-8">
+            <h1
+              className="font-display text-3xl leading-none tracking-[0.35em] text-neutral-400"
+              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', textShadow: '0 0 26px var(--accent, #f59e0b)' }}
+            >
+              tivi
+            </h1>
+            <VolumeSlider
+              value={volume}
+              muted={muted}
+              onChange={next => {
+                setVolume(next)
+                localStorage.setItem('tivi.volume', String(next))
+              }}
+              onToggleMute={() => {
+                const next = !muted
+                setMuted(next)
+                localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
+              }}
+            />
+          </div>
         </div>
         <section className="flex min-h-0 flex-col gap-3 lg:row-span-2">
           <div className="flex items-baseline justify-between lg:hidden">
@@ -163,25 +178,18 @@ export default function App() {
             >
               <SkipForward size={16} />
             </button>
-            <div className="ml-auto flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  const next = !muted
-                  setMuted(next)
-                  localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
-                }}
-                aria-label={muted ? 'Unmute' : 'Mute'}
-                className="rounded-lg border border-neutral-700 p-2 hover:bg-neutral-800"
-              >
-                {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-              </button>
+            <div className="ml-auto flex items-center gap-2 lg:hidden">
               <VolumeSlider
                 value={volume}
                 muted={muted}
                 onChange={next => {
                   setVolume(next)
                   localStorage.setItem('tivi.volume', String(next))
+                }}
+                onToggleMute={() => {
+                  const next = !muted
+                  setMuted(next)
+                  localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
                 }}
               />
             </div>

@@ -78,20 +78,20 @@ sequenceDiagram
 ## The screen
 
 ```
-┌──────────────────────────────┬──────────────────┐
-│  the record, sleeve size     │  Up next  (line) │
-│  (or its colour-ASCII view)  │  Library         │
-│                              │  ┌─────────────┐ │
-│  title · artist · year       │  │ add a song  │ │
-│  ────── progress ──────      │  └─────────────┘ │
-│  ⏸ ⏭              ▮▮▮  ▌     │  [Add] per song  │
-│                   vol        │                  │
-└──────────────────────────────┴──────────────────┘
+┌───────┬──────────────────────────┬──────────────────┐
+│ tivi  │  the record, sleeve size │  Up next  (line) │
+│       │  (or its colour-ASCII)   │  Library         │
+│ ▮▮▮▮  │                          │  ┌─────────────┐ │
+│ ▮▮▮▮  │  title · artist · year   │  │ add a song  │ │
+│  ▌    │  ────── progress ──────  │  └─────────────┘ │
+│ 075%  │  ⏸ ⏭                    │  [Add] per song  │
+│  🔈   │                          │                  │
+└───────┴──────────────────────────┴──────────────────┘
 ```
 
-- **Left: the sleeve.** The record label scan at full size, with a button that redraws it as
-  colour ASCII — each character takes the colour of the pixel it stands for, so the label stays
-  readable. Transport controls sit under it.
+- **Left: the sleeve**, with the name and the volume panel under it. The name is set down the
+  gutter in Limelight and lit by the record's colour; the volume is a segmented ladder beside a
+  pill track, drag it anywhere along its length or use the arrow keys.
 - **Right: everything you touch.** Add-music controls, the line, and the library.
 - **The theme comes from the record.** `useArtworkTheme` runs node-vibrant over the cover and sets
   `--accent` / `--tint` on the document, so the progress bar, buttons and page glow all take the
