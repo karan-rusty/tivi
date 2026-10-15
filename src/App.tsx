@@ -121,3 +121,36 @@ export default function App() {
             </div>
           </div>
         </section>
+
+        <section>
+          <h3 className="mb-2 text-sm font-medium text-neutral-400">Up next</h3>
+          {state?.queue.length ? (
+            <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
+              {state.queue.map((item, i) => {
+                const t = TRACKS.find(x => x.id === item.trackId)
+                return (
+                  <li key={item.id} className="flex items-center gap-3 px-3 py-2">
+                    <span className="w-4 text-right text-xs text-neutral-600">{i + 1}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      {t?.title ?? item.trackId}
+                      <span className="text-neutral-500"> · {t?.artist}</span>
+                    </span>
+                    <span className="max-w-24 truncate text-xs text-neutral-500">{item.by}</span>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${t?.title ?? item.trackId}`}
+                      onClick={() => void remove(item.id)}
+                      className="text-neutral-600 hover:text-red-400"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <p className="rounded-xl border border-dashed border-neutral-800 px-3 py-6 text-center text-sm text-neutral-600">
+              The line is empty.
+            </p>
+          )}
+        </section>
