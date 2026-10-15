@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Pause, Play, SkipForward, Trash2, Volume2, VolumeX } from 'lucide-react'
+import { Pause, Play, SkipForward, Trash2, Upload, Volume2, VolumeX } from 'lucide-react'
 import { useJukebox } from './useJukebox.ts'
 
 const read = (key: string, fallback: string) => localStorage.getItem(key) ?? fallback
@@ -203,8 +203,8 @@ export default function App() {
             </label>
           </div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <label className="cursor-pointer rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-300 hover:bg-neutral-800">
-              Upload a file
+            <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-400 hover:bg-amber-500/20">
+              <Upload size={13} /> Add from this device
               <input
                 type="file"
                 accept="audio/*"
