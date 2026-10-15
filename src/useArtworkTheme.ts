@@ -22,12 +22,12 @@ export function useArtworkTheme(art?: string) {
         const swatch = palette.Vibrant ?? palette.LightVibrant ?? palette.DarkVibrant ?? palette.Muted
         const tint = palette.DarkMuted ?? palette.Muted ?? swatch
         if (!swatch) return clear()
-        const [r, g, b] = swatch.rgb
+        const [r, g, b] = swatch.rgb.map(Math.round)
         // A dark cover would vanish against the near-black page, so lift it toward white.
         const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
         const accent = lum < 0.42 ? [r, g, b].map(c => Math.round(c + (255 - c) * 0.45)) : [r, g, b]
         style.setProperty('--accent', `rgb(${accent.join(' ')})`)
-        if (tint) style.setProperty('--tint', `rgb(${tint.rgb.join(' ')} / 0.16)`)
+        if (tint) style.setProperty('--tint', `rgb(${tint.rgb.map(Math.round).join(' ')} / 0.16)`)
       })
       .catch(clear)
     return () => {
