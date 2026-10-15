@@ -1,0 +1,28 @@
+export type Track = {
+  id: string
+  title: string
+  artist: string
+  year: number
+  file: string
+}
+
+export type QueueItem = {
+  id: string
+  trackId: string
+  by: string
+}
+
+/** The one song the saloon is hearing. Position = (pausedAt ?? now) - startedAt. */
+export type Playing = {
+  id: string
+  trackId: string
+  startedAt: number
+  pausedAt: number | null
+}
+
+/** `now` is the server clock at send time; clients use it to correct for drift. */
+export type Snapshot = {
+  queue: QueueItem[]
+  playing: Playing | null
+  now: number
+}
