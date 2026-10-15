@@ -121,25 +121,33 @@ promise cannot hold.
 
 ## Adding music
 
-Two ways in, both from the browser, both ending as a local cached file so every listener still
-hears the same second as the built-in tracks:
+**One box takes whatever somebody has.** Type a song, a name, or a link; press Enter. Everything
+ends as a local cached file, so every listener still hears the same second as the built-in tracks.
 
-1. **Upload a file** — pick an mp3/ogg/wav/flac/m4a off your phone. Up to 25 MB per file, 60
-   tracks per library.
-2. **Paste an archive.org link** — `https://archive.org/details/<item>`. The server reads the
-   item's metadata, takes its **largest** mp3 (several items ship a truncated derivative that
-   would stall the queue), downloads it into `data/tracks/`, and titles the track from the item.
+1. **A song name** — searches the public-domain 78s and shows up to eight tappable rows
+   (`Oil Well ◆ Jelly-Roll Morton ◆ 1950`). Tapping one caches that recording and puts it on the
+   line. The search is scoped to `collection:78rpm`, so *everything it offers can actually be
+   played here* — that is the whole point of taking a request by name.
+2. **An archive.org link** — exact, so it is added straight away rather than searched for.
+3. **A YouTube or Spotify link** — read for its title and then searched for *by that title*, since
+   the link itself cannot be streamed here. Paste a Rick Astley video and the panel says what it
+   read and that no 78 of it exists. Paste a 1930s jazz video and it usually finds the record.
+4. **A file** — pick an mp3/ogg/wav/flac/m4a off the device. Up to 25 MB, 60 tracks per library.
+
+When only a link is available, that is the honest limit: Spotify playback needs Premium on **every**
+listener (and its 30-second previews are gone for new apps), and YouTube's terms require its own
+visible player of at least 200×200px and forbid separating the audio. So a link-playback path means
+either a subscription per guest or a video watch party that breaks the shared clock. Reading a
+link's *title* and finding a public-domain pressing of the same song costs nothing and plays.
 
 What you add is queued immediately and shows up in everyone's library over the same SSE stream.
+Resolving an archive.org item takes 10–30 seconds — it is downloading a real recording — and the
+panel says so while it works. archive.org drops a request every so often, so downloads are retried
+once and failures say "give it another go" rather than pretending nothing happened.
+
 Uploads and downloads live in `data/`, which is gitignored: on a host with an ephemeral disk they
 are gone after a restart, so attach a volume if the library should survive the night.
 
-YouTube and Spotify links are rejected with a reason, deliberately. Spotify playback needs Premium
-on **every** listener (and its 30-second previews are no longer available to new apps), and
-YouTube's terms require its own visible player of at least 200×200px and forbid separating the
-audio — so a link-playback path means either a subscription per guest or a video watch party that
-breaks the shared clock. Public-domain archive.org links give the same "paste a link" feel with
-none of that.
 
 ## Not built
 
