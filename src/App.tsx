@@ -89,7 +89,10 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-dvh bg-neutral-950 text-neutral-100">
+    <div
+      className="min-h-dvh bg-neutral-950 text-neutral-100"
+      style={{ backgroundImage: 'radial-gradient(90% 45% at 50% -5%, var(--tint, transparent), transparent)' }}
+    >
       <header className="flex items-baseline justify-between gap-4 border-b border-neutral-800 px-4 py-3">
         <h1 className="font-display text-2xl leading-none">tivi</h1>
         <p className="text-xs text-neutral-500">
@@ -97,8 +100,8 @@ export default function App() {
         </p>
       </header>
 
-      <main className="mx-auto max-w-3xl space-y-6 p-4">
-        <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+      <main className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 lg:row-span-3">
           <p className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</p>
           <Artwork track={track} />
           <h2 className="mt-3 truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
