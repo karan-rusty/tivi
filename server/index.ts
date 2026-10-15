@@ -45,3 +45,43 @@ app.get('/api/events', c =>
     })
   }),
 )
+
+app.post('/api/queue', async c => {
+  const body = AddBody.safeParse(await c.req.json().catch(() => null))
+  if (!body.success || !TRACKS.some(t => t.id === body.data.trackId)) return c.json({ error: 'bad request' }, 400)
+  queue.push({ id: crypto.randomUUID(), trackId: body.data.trackId, by: body.data.by || 'someone' })
+  if (!playing) advance()
+  broadcast()
+  return c.json(snapshot())
+})
+
+/** Skip, or the song ended in some tab. Only the first caller's id still matches. */
+app.post('/api/next', async c => {
+  const body = IdBody.safeParse(await c.req.json().catch(() => null))
+  if (!body.success) return c.json({ error: 'bad request' }, 400)
+  if (playing?.id === body.data.id) {
+    advance()
+    broadcast()
+  }
+  return c.json(snapshot())
+})
+
+app.post('/api/pause', c => {
+  if (playing) {
+    if (playing.pausedAt === null) {
+      playing.pausedAt = Date.now()
+    } else {
+      playing.startedAt += Date.now() - playing.pausedAt // shift the start so position math still holds
+      playing.pausedAt = null
+    }
+    broadcast()
+  }
+  return c.json(snapshot())
+})
+
+app.delete('/api/queue/:id', c => {
+  const i = queue.findIndex(q => q.id === c.req.param('id'))
+  if (i !== -1) queue.splice(i, 1)
+  broadcast()
+  return c.json(snapshot())
+})
