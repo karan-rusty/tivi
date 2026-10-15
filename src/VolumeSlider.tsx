@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react'
+import { Volume2, VolumeX } from 'lucide-react'
 
-const SEGMENTS = 16
+const SEGMENTS = 24
 const HANDLE = 16
 
 /**
@@ -11,10 +12,12 @@ export function VolumeSlider({
   value,
   muted,
   onChange,
+  onToggleMute,
 }: {
   value: number
   muted: boolean
   onChange: (value: number) => void
+  onToggleMute: () => void
 }) {
   const rail = useRef<HTMLDivElement>(null)
   const pct = Math.round(value * 100)
@@ -33,11 +36,11 @@ export function VolumeSlider({
   const nudge = (delta: number) => onChange(Math.min(1, Math.max(0, value + delta)))
 
   return (
-    <div className="flex shrink-0 select-none flex-col items-center gap-1">
-      <div className="flex h-22 items-stretch gap-2">
+    <div className="flex shrink-0 select-none flex-col items-center gap-2">
+      <div className="flex h-48 items-stretch gap-2">
         <div className="flex flex-col-reverse justify-between py-0.5" aria-hidden>
           {Array.from({ length: SEGMENTS }, (_, i) => (
-            <span key={i} className={`h-1 w-7 rounded-[2px] ${i < lit ? 'bg-accent' : 'bg-white/10'}`} />
+            <span key={i} className={`h-1.5 w-7 rounded-[2px] ${i < lit ? 'bg-accent' : 'bg-white/10'}`} />
           ))}
         </div>
         <div
@@ -86,6 +89,15 @@ export function VolumeSlider({
       <span className={`font-mono text-[11px] tracking-[0.2em] ${muted ? 'text-neutral-600' : 'text-accent'}`}>
         {muted ? 'MUTE' : `${String(pct).padStart(3, '0')}%`}
       </span>
+      <button
+        type="button"
+        onClick={onToggleMute}
+        aria-label={muted ? 'Unmute' : 'Mute'}
+        className="rounded-lg border border-white/10 p-2 text-neutral-400 hover:bg-white/5 hover:text-accent"
+      >
+        {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+      </button>
     </div>
   )
 }
+
