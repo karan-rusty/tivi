@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, SkipForward, Trash2, Upload } from 'lucide-react'
 import { Artwork } from './Artwork.tsx'
+import { Spectrum } from './Spectrum.tsx'
 import { useArtworkTheme } from './useArtworkTheme.ts'
 import { useJukebox } from './useJukebox.ts'
+import { useSpectrum } from './useSpectrum.ts'
 import { VolumeSlider } from './VolumeSlider.tsx'
 
 const read = (key: string, fallback: string) => localStorage.getItem(key) ?? fallback
@@ -23,6 +25,13 @@ export default function App() {
   const playing = state?.playing ?? null
   const track = library.find(t => t.id === playing?.trackId)
   useArtworkTheme(track?.art)
+  const spectrum = useSpectrum(audio)
+
+  function gesture() {
+    spectrum.ensure() // first click builds the analyser, inside the activation it needs
+    spectrum.resume()
+    sync()
+  }
   // Position comes from the shared clock, so every screen in the saloon agrees.
   const elapsed = playing ? Math.max(0, (playing.pausedAt ?? serverNow()) - playing.startedAt) / 1000 : 0
   const pct = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0
@@ -90,9 +99,10 @@ export default function App() {
     <div
       className="relative isolate min-h-dvh text-neutral-100 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden"
       // Browsers only allow audio after a real gesture, so the first one anywhere in the page
-      // unlocks this device — no prompt, no button. Capture, so it fires before anything else.
-      onPointerDownCapture={sync}
-      onKeyDownCapture={sync}
+      // unlocks this device and brings up the analyser — no prompt, no button. Capture, so it
+      // fires before anything else.
+      onPointerDownCapture={gesture}
+      onKeyDownCapture={gesture}
     >
       {/* The room is lit by whatever is on the turntable: the cover blown up past the viewport,
           blurred, and dimmed behind a scrim so the text stays readable. */}
@@ -194,6 +204,7 @@ export default function App() {
               />
             </div>
           </div>
+          <Spectrum analyser={spectrum.analyser} online={spectrum.online} />
         </section>
 
         <section className="flex min-h-0 flex-col">
