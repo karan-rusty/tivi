@@ -43,13 +43,13 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
     let raf = 0
     let frame = 0
     let colour = accentColour()
-    let ceiling = 0.4 // rolling full-scale, so a quiet 78 still fills the frame like cava's auto_sens
     let node: AnalyserNode | null = null
     let bins = new Uint8Array(1024)
     let bars = 0
     let ofBar = new Uint8Array(0)
     let levels = new Float32Array(0)
     let peaks = new Float32Array(0)
+    let history = new Float32Array(0)
 
     // Columns depend on width and the FFT depends on the analyser, so this is rebuilt whenever
     // either changes — including the first frame after the gesture brings the analyser up.
@@ -59,6 +59,7 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
       bars = next
       levels = new Float32Array(bars)
       peaks = new Float32Array(bars)
+      history = new Float32Array(bars)
       ofBar = new Uint8Array(bins.length)
       const rate = node?.context.sampleRate ?? 44100
       const binHz = rate / (node?.fftSize ?? 2048)
@@ -91,10 +92,14 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
         const value = (db(bins[i]) + 60) / 60 // -60 dB is the floor
         const bar = ofBar[i]
         if (value > levels[bar]) levels[bar] = value
-        if (levels[bar] > loudest) loudest = levels[bar]
+        if (value > loudest) loudest = value
       }
-      ceiling = Math.max(loudest, ceiling * 0.995, 0.3)
-      const gain = Math.min(2.2, 1 / (ceiling * 0.8)) // a little headroom, so ordinary passages fill the frame
+
+      // Each column is scaled by its own recent peak rather than one global gain. A 1922 acoustic
+      // 78 sits between 200Hz and 1.5kHz, so on a fixed scale four fifths of the width does
+      // nothing and the rest barely lifts; this makes the whole bar work, and the floor stops
+      // noise from amplifying itself when the room is quiet.
+      const silent = loudest < 0.06
 
       if (frame % 24 === 0) colour = accentColour()
       frame++
@@ -102,7 +107,8 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
       ctx.fillStyle = colour
 
       for (let b = 0; b < bars; b++) {
-        const level = Math.min(1, Math.max(0, levels[b] * gain))
+        history[b] = Math.max(levels[b], history[b] * 0.97, 0.16)
+        const level = silent ? 0 : Math.min(1, Math.pow(levels[b] / history[b], 0.8))
         peaks[b] = Math.max(level, peaks[b] - DECAY)
         const x = b * PITCH
         const up = Math.round(level * top)
