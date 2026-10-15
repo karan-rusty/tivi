@@ -5,11 +5,13 @@
     "": {
       "name": "tivi",
       "dependencies": {
+        "@fontsource/limelight": "^5.3.0",
         "@hono/node-server": "^2.1.5",
         "hono": "^4.13.13",
         "lucide-react": "^1.57.0",
         "react": "^19.3.1",
         "react-dom": "^19.3.1",
+        "tsx": "^4.23.15",
         "zod": "^4.6.7",
       },
       "devDependencies": {
@@ -21,7 +23,6 @@
         "concurrently": "^10.0.6",
         "oxlint": "^1.81.0",
         "tailwindcss": "^4.3.3",
-        "tsx": "^4.23.15",
         "typescript": "~6.0.2",
         "vite": "^8.3.0",
       },
@@ -79,6 +80,8 @@
     "@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.28.2", "", { "os": "win32", "cpu": "ia32" }, "sha512-YmJbfTlvU7Sdn9BB+4PRES4oB6pxgS37MAONj+hBr/cpXS1aBPKXxNnDbu+QCWPj0o9dgyxeq79g6c5P8KeuYA=="],
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.28.2", "", { "os": "win32", "cpu": "x64" }, "sha512-5ebpxr3nWMzrL/rnUI755Jkuee0bHL/Gq0WTF9lvcpv73wAp5eu8MfBUgWK9bhWvZjj7yX8etf/8tI8Ney695g=="],
+
+    "@fontsource/limelight": ["@fontsource/limelight@5.3.0", "", {}, "sha512-jiuuCdbk9/u0TA/bIZfp35cvJrfz1CJFSEFh4lk5Ma8Nh42897GbF0ny85emdYiJ6WJQjnD/BK/X0D5Oe6bxbg=="],
 
     "@hono/node-server": ["@hono/node-server@2.1.5", "", { "peerDependencies": { "hono": "^4 || ^5.0.0-0" } }, "sha512-MgP/I06GdvsilDspMk/qmRzpk8LOUStP6jFAbSRi40W09DhoyUn+Mj7eyKICPqeYKybOjVFLVIAQzvu1bfIa7Q=="],
 

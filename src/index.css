@@ -1,4 +1,10 @@
 @import "tailwindcss";
+@import "@fontsource/limelight/latin-400.css";
+
+/* The wordmark face: art-deco marquee, one weight, used nowhere else. */
+@theme {
+  --font-display: "Limelight", ui-serif, serif;
+}
 
 html {
   color-scheme: dark;

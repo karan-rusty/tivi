@@ -57,7 +57,7 @@ export default function App() {
   return (
     <div className="min-h-dvh bg-neutral-950 text-neutral-100">
       <header className="flex items-baseline justify-between gap-4 border-b border-neutral-800 px-4 py-3">
-        <h1 className="text-lg font-semibold tracking-tight">tivi</h1>
+        <h1 className="font-display text-2xl leading-none">tivi</h1>
         <p className="text-xs text-neutral-500">
           {state ? `${state.queue.length} in line` : 'connecting…'}
         </p>
