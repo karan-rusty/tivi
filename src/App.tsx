@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, SkipForward, Trash2, Upload, Volume2, VolumeX } from 'lucide-react'
+import { Artwork } from './Artwork.tsx'
 import { useArtworkTheme } from './useArtworkTheme.ts'
 import { useJukebox } from './useJukebox.ts'
 
@@ -99,7 +100,8 @@ export default function App() {
       <main className="mx-auto max-w-3xl space-y-6 p-4">
         <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
           <p className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</p>
-          <h2 className="mt-1 truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
+          <Artwork track={track} />
+          <h2 className="mt-3 truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
           <p className="text-sm text-neutral-400">
             {track ? `${track.artist} · ${track.year}` : 'Add a tune below to start the night'}
           </p>
