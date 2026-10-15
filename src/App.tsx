@@ -19,6 +19,8 @@ export default function App() {
   const [link, setLink] = useState('')
   const [busy, setBusy] = useState('')
   const [note, setNote] = useState('')
+  const linkInput = useRef<HTMLInputElement>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
   const [, tick] = useState(0)
 
   const library = state?.library ?? []
@@ -35,6 +37,33 @@ export default function App() {
   // Position comes from the shared clock, so every screen in the saloon agrees.
   const elapsed = playing ? Math.max(0, (playing.pausedAt ?? serverNow()) - playing.startedAt) / 1000 : 0
   const pct = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0
+  const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
+
+  // Terminal-style shortcuts, taught by the hint row at the foot of the panel.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null
+      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return
+      if (e.key === ' ') {
+        e.preventDefault()
+        void togglePause()
+      } else if (e.key === 'n') {
+        if (playing) void skip(playing.id)
+      } else if (e.key === 'm') {
+        const next = !muted
+        setMuted(next)
+        localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
+      } else if (e.key === 'a') {
+        e.preventDefault()
+        linkInput.current?.focus()
+      } else if (e.key === 'u') {
+        e.preventDefault()
+        fileInput.current?.click()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
 
   function sync() {
     const el = audio.current
@@ -97,7 +126,7 @@ export default function App() {
 
   return (
     <div
-      className="relative isolate min-h-dvh text-neutral-100 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden"
+      className="relative isolate min-h-dvh font-mono text-neutral-100 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden"
       // Browsers only allow audio after a real gesture, so the first one anywhere in the page
       // unlocks this device and brings up the analyser — no prompt, no button. Capture, so it
       // fires before anything else.
@@ -164,10 +193,17 @@ export default function App() {
           </div>
           <h2 className="truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
           <p className="text-sm text-neutral-400">
-            {track ? `${track.artist} · ${track.year}` : 'Add a tune below to start the night'}
+            {track ? `${track.artist} ◆ ${track.year}` : 'Add a tune below to start the night'}
           </p>
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
-            <div className="h-full bg-accent transition-[width] duration-1000 ease-linear" style={{ width: `${pct}%` }} />
+          <div className="mt-3 flex items-center gap-2">
+            <span className="tabular text-xs text-neutral-500">{clock(elapsed)}</span>
+            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+              <span
+                className="block h-full bg-accent transition-[width] duration-1000 ease-linear"
+                style={{ width: `${pct}%` }}
+              />
+            </span>
+            <span className="tabular text-xs text-neutral-500">{duration > 0 ? clock(duration) : '--:--'}</span>
           </div>
           <div className="mt-3 flex items-center gap-2">
             <button
@@ -188,7 +224,10 @@ export default function App() {
             >
               <SkipForward size={16} />
             </button>
-            <div className="ml-auto flex items-center gap-2 lg:hidden">
+            <span className="tabular ml-auto text-[11px] text-neutral-600" title="output sample rate">
+              {spectrum.sampleRate() ? `SR ${(spectrum.sampleRate() / 1000).toFixed(1)}kHz` : 'SR --'}
+            </span>
+            <div className="flex items-center gap-2 lg:hidden">
               <VolumeSlider
                 value={volume}
                 muted={muted}
@@ -221,7 +260,7 @@ export default function App() {
                     <span className="w-4 text-right text-xs text-neutral-600">{i + 1}</span>
                     <span className="min-w-0 flex-1 truncate text-sm">
                       {t?.title ?? item.trackId}
-                      <span className="text-neutral-500"> · {t?.artist}</span>
+                      <span className="text-neutral-600"> ◆ {t?.artist}</span>
                     </span>
                     <span className="max-w-24 truncate text-xs text-neutral-500">{item.by}</span>
                     <button
@@ -263,6 +302,7 @@ export default function App() {
             <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/20">
               <Upload size={13} /> Add from this device
               <input
+                ref={fileInput}
                 type="file"
                 accept="audio/*"
                 className="hidden"
@@ -274,6 +314,7 @@ export default function App() {
               />
             </label>
             <input
+              ref={linkInput}
               value={link}
               placeholder="or paste an archive.org link"
               onChange={e => setLink(e.target.value)}
@@ -296,7 +337,7 @@ export default function App() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm">{t.title}</p>
                   <p className="truncate text-xs text-neutral-500">
-                    {t.artist} · {t.year}
+                    {t.artist} ◆ {t.year}
                   </p>
                 </div>
                 <button
@@ -309,9 +350,13 @@ export default function App() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-neutral-600">
-            Every browser plays the same song. Open this page on the machine wired to the saloon speakers, and tune
-            its volume there.
+          <p className="mt-3 text-[11px] text-neutral-500">
+            <span className="text-neutral-600">[space]</span> play/pause ◆ <span className="text-neutral-600">[n]</span>{' '}
+            skip ◆ <span className="text-neutral-600">[m]</span> mute ◆ <span className="text-neutral-600">[a]</span>{' '}
+            link ◆ <span className="text-neutral-600">[u]</span> upload
+          </p>
+          <p className="mt-1 text-[11px] text-neutral-700">
+            volume is per device — turn it up on the machine wired to the speakers
           </p>
         </section>
       </main>
