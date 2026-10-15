@@ -133,7 +133,7 @@ export default function App() {
             <span className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</span>
           </div>
           <p className="hidden text-[11px] uppercase tracking-[0.2em] text-accent/80 lg:block">Now playing</p>
-          <div className="flex min-h-0 flex-1 items-center justify-center">
+          <div className="flex min-h-0 flex-1 items-center justify-center lg:[container-type:size]">
             <Artwork track={track} />
           </div>
           <h2 className="truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>

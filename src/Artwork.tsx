@@ -51,7 +51,7 @@ export function Artwork({ track }: { track?: Track }) {
   const lines = useAscii(track?.art, ascii)
 
   return (
-    <div className="@container relative aspect-square w-full shrink-0 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 lg:h-full lg:w-auto">
+    <div className="@container relative aspect-square w-full shrink-0 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 lg:w-[min(100cqw,100cqh)]">
       {ascii && lines ? (
         <pre className="flex h-full w-full flex-col items-center justify-center overflow-hidden font-mono leading-[1.02] text-[2.6cqw]">
           {lines.map((line, y) => (
@@ -69,7 +69,11 @@ export function Artwork({ track }: { track?: Track }) {
       ) : (
         <div
           className="flex h-full w-full items-center justify-center"
-          style={{ background: 'radial-gradient(120% 120% at 25% 10%, var(--tint, #262626), #0a0a0a)' }}
+          style={{
+            backgroundImage:
+              'radial-gradient(120% 120% at 25% 10%, var(--tint, #262626), #0a0a0a), repeating-radial-gradient(circle at 50% 50%, #1b1b1b 0 1px, #0f0f0f 1px 4px)',
+            backgroundBlendMode: 'overlay',
+          }}
         >
           <span className="font-display text-7xl text-neutral-600">{track ? track.title.slice(0, 2) : 'tivi'}</span>
         </div>
