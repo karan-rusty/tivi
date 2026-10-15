@@ -3,7 +3,8 @@ export type Track = {
   title: string
   artist: string
   year: number
-  file: string
+  /** Playable path. Built-in files sit under /tracks, anything added at runtime under /media. */
+  src: string
 }
 
 export type QueueItem = {
@@ -22,6 +23,7 @@ export type Playing = {
 
 /** `now` is the server clock at send time; clients use it to correct for drift. */
 export type Snapshot = {
+  library: Track[]
   queue: QueueItem[]
   playing: Playing | null
   now: number

@@ -5,7 +5,7 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import type { SSEStreamingApi } from 'hono/streaming'
 import { z } from 'zod'
-import { TRACKS } from '../shared/tracks.ts'
+import { library } from './library.ts'
 import type { Playing, QueueItem, Snapshot } from '../shared/types.ts'
 
 /* State lives in memory: one saloon, one night, one process. Restart = fresh room. */
@@ -13,7 +13,7 @@ const queue: QueueItem[] = []
 let playing: Playing | null = null
 const listeners = new Set<SSEStreamingApi>()
 
-const snapshot = (): Snapshot => ({ queue, playing, now: Date.now() })
+const snapshot = (): Snapshot => ({ library, queue, playing, now: Date.now() })
 
 function broadcast() {
   const data = JSON.stringify(snapshot())
@@ -48,7 +48,7 @@ app.get('/api/events', c =>
 
 app.post('/api/queue', async c => {
   const body = AddBody.safeParse(await c.req.json().catch(() => null))
-  if (!body.success || !TRACKS.some(t => t.id === body.data.trackId)) return c.json({ error: 'bad request' }, 400)
+  if (!body.success || !library.some(t => t.id === body.data.trackId)) return c.json({ error: 'bad request' }, 400)
   queue.push({ id: crypto.randomUUID(), trackId: body.data.trackId, by: body.data.by || 'someone' })
   if (!playing) advance()
   broadcast()

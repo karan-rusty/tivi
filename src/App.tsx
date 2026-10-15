@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, SkipForward, Trash2, Volume2, VolumeX } from 'lucide-react'
-import { TRACKS } from '../shared/tracks.ts'
 import { useJukebox } from './useJukebox.ts'
 
 const read = (key: string, fallback: string) => localStorage.getItem(key) ?? fallback
@@ -15,8 +14,9 @@ export default function App() {
   const [sound, setSound] = useState(false) // has this tab managed to start playing
   const [, tick] = useState(0)
 
+  const library = state?.library ?? []
   const playing = state?.playing ?? null
-  const track = TRACKS.find(t => t.id === playing?.trackId)
+  const track = library.find(t => t.id === playing?.trackId)
   // Position comes from the shared clock, so every screen in the saloon agrees.
   const elapsed = playing ? Math.max(0, (playing.pausedAt ?? serverNow()) - playing.startedAt) / 1000 : 0
   const pct = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0
@@ -25,9 +25,8 @@ export default function App() {
     const el = audio.current
     if (!el) return
     if (!playing || !track) return el.pause()
-    const url = `/tracks/${track.file}`
-    if (!el.currentSrc.endsWith(url)) {
-      el.src = url
+    if (!el.currentSrc.endsWith(track.src)) {
+      el.src = track.src
       el.load()
     }
     el.volume = muted ? 0 : volume
@@ -127,7 +126,7 @@ export default function App() {
           {state?.queue.length ? (
             <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
               {state.queue.map((item, i) => {
-                const t = TRACKS.find(x => x.id === item.trackId)
+                const t = library.find(x => x.id === item.trackId)
                 return (
                   <li key={item.id} className="flex items-center gap-3 px-3 py-2">
                     <span className="w-4 text-right text-xs text-neutral-600">{i + 1}</span>
@@ -172,7 +171,7 @@ export default function App() {
             </label>
           </div>
           <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
-            {TRACKS.map(t => (
+            {library.map(t => (
               <li key={t.id} className="flex items-center gap-3 px-3 py-2">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm">{t.title}</p>
