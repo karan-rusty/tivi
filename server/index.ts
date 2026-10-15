@@ -8,6 +8,7 @@ import type { SSEStreamingApi } from 'hono/streaming'
 import { z } from 'zod'
 import { resolveArchiveLink } from './archive.ts'
 import { addTrack, library } from './library.ts'
+import { cleanTitle, searchArchive, titleOfLink } from './lookup.ts'
 import type { Playing, QueueItem, Snapshot } from '../shared/types.ts'
 
 /* State lives in memory: one saloon, one night, one process. Restart = fresh room. */
@@ -148,6 +149,32 @@ app.post('/api/library/link', async c => {
   addTrack(track)
   broadcast()
   return c.json(track)
+})
+
+const Lookup = z.object({ value: z.string().trim().min(2).max(2048) })
+
+/**
+ * One entry point for "here is a song". A name searches the playable catalogue; a YouTube or
+ * Spotify link is read for its title and searched for by that instead, because the link itself
+ * cannot be played here. Nothing in this route queues anything — the results are for tapping.
+ */
+app.post('/api/inspect', async c => {
+  const body = Lookup.safeParse(await c.req.json().catch(() => null))
+  if (!body.success) return c.json({ error: 'type a song or paste a link' }, 400)
+  const value = body.data.value
+  const isLink = /^https?:\/\//i.test(value)
+  const raw = isLink ? await titleOfLink(value) : null
+  if (isLink && !raw) {
+    return c.json({ error: 'could not read that link — archive.org, YouTube and Spotify links only' }, 400)
+  }
+  const link = raw ? { title: cleanTitle(raw.title), artist: cleanTitle(raw.artist) } : null
+  // A YouTube title already reads "Artist - Song", so the artist is only appended when missing.
+  const query = link
+    ? link.artist && !link.title.toLowerCase().includes(link.artist.toLowerCase())
+      ? `${link.title} ${link.artist}`
+      : link.title
+    : value
+  return c.json({ link, query, results: await searchArchive(query) })
 })
 
 /* Uploads live outside dist/, which the build wipes. serveStatic joins the whole request path,
