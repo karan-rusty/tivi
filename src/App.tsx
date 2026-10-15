@@ -175,6 +175,8 @@ export default function App() {
             <VolumeSlider
               value={volume}
               muted={muted}
+              level={spectrum.level}
+              armed={spectrum.online}
               onChange={next => {
                 setVolume(next)
                 localStorage.setItem('tivi.volume', String(next))
@@ -238,6 +240,8 @@ export default function App() {
               <VolumeSlider
                 value={volume}
                 muted={muted}
+                level={spectrum.level}
+                armed={spectrum.online}
                 onChange={next => {
                   setVolume(next)
                   localStorage.setItem('tivi.volume', String(next))

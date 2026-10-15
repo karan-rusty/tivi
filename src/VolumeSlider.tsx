@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Volume2, VolumeX } from 'lucide-react'
 
 const SEGMENTS = 24
@@ -13,15 +13,52 @@ export function VolumeSlider({
   muted,
   onChange,
   onToggleMute,
+  level,
+  armed,
 }: {
   value: number
   muted: boolean
   onChange: (value: number) => void
   onToggleMute: () => void
+  /** Mean energy of what is coming out, 0..1. */
+  level: () => number
+  /** False until the first gesture has armed the analyser; the ladder rests until then. */
+  armed: boolean
 }) {
   const rail = useRef<HTMLDivElement>(null)
+  const segments = useRef<(HTMLSpanElement | null)[]>([])
   const pct = Math.round(value * 100)
-  const lit = muted ? 0 : Math.round(value * SEGMENTS)
+
+  // The segments are a level meter, not a volume scale — the handle and the readout show the
+  // setting, the ladder dances to the song. Written straight to the DOM: 24 nodes at 30fps
+  // through React state would re-render the whole panel for a decoration.
+  useEffect(() => {
+    if (!armed) return
+    let raf = 0
+    let shown = 0
+    let ceiling = 0.35
+    let last = 0
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick)
+      if (now - last < 33) return
+      last = now
+      const raw = level()
+      ceiling = Math.max(raw, ceiling * 0.996, 0.22)
+      const want = muted ? 0 : Math.max(0, Math.min(1, raw / ceiling))
+      // meter ballistics: snap up, ease down
+      shown += (want - shown) * (want > shown ? 0.5 : 0.16)
+      const lit = Math.round(shown * segments.current.length)
+      segments.current.forEach((el, i) => {
+        if (!el) return
+        const on = i < lit ? '1' : '0'
+        if (el.dataset.on === on) return
+        el.dataset.on = on
+        el.style.backgroundColor = on === '1' ? 'var(--accent, #f59e0b)' : 'rgba(255,255,255,0.10)'
+      })
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [armed, level, muted])
 
   const setFromPointer = useCallback(
     (clientY: number) => {
@@ -40,7 +77,13 @@ export function VolumeSlider({
       <div className="flex h-48 items-stretch gap-2">
         <div className="flex flex-col-reverse justify-between py-0.5" aria-hidden>
           {Array.from({ length: SEGMENTS }, (_, i) => (
-            <span key={i} className={`h-1.5 w-7 rounded-[2px] ${i < lit ? 'bg-accent' : 'bg-white/10'}`} />
+            <span
+              key={i}
+              ref={el => {
+                segments.current[i] = el
+              }}
+              className="h-1.5 w-7 rounded-[2px] bg-white/10"
+            />
           ))}
         </div>
         <div

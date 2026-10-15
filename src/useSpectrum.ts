@@ -42,21 +42,26 @@ export function useSpectrum(audio: React.RefObject<HTMLAudioElement | null>) {
     if (ctx.current?.state === 'suspended') void ctx.current.resume()
   }, [])
 
+  const sampleRate = () => ctx.current?.sampleRate ?? 0
+  const buffer = useRef<Uint8Array<ArrayBuffer> | null>(null)
+
   return {
     ensure,
     resume,
     analyser,
     online,
-    sampleRate: () => ctx.current?.sampleRate ?? 0,
-    /** Loudest band in dB right now, for the readout strip. */
-    peakDb: () => {
+    sampleRate,
+    /** Mean energy right now, 0..1 — what the level meter moves to. */
+    level: () => {
       const node = analyser.current
-      if (!node) return -Infinity
-      const bins = new Uint8Array(node.frequencyBinCount)
-      node.getByteFrequencyData(bins)
-      let max = 0
-      for (const b of bins) if (b > max) max = b
-      return node.minDecibels + (max / 255) * (node.maxDecibels - node.minDecibels)
+      if (!node) return 0
+      if (!buffer.current || buffer.current.length !== node.frequencyBinCount) {
+        buffer.current = new Uint8Array(node.frequencyBinCount)
+      }
+      node.getByteFrequencyData(buffer.current)
+      let sum = 0
+      for (const byte of buffer.current) sum += byte
+      return sum / (buffer.current.length * 255)
     },
   }
 }
