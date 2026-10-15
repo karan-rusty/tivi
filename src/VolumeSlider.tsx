@@ -1,0 +1,91 @@
+import { useCallback, useRef } from 'react'
+
+const SEGMENTS = 16
+const HANDLE = 16
+
+/**
+ * Volume as a segmented ladder beside a pill track, in the style of a receiver's LED meter.
+ * The lit bars take the current record's colour because they use --accent.
+ */
+export function VolumeSlider({
+  value,
+  muted,
+  onChange,
+}: {
+  value: number
+  muted: boolean
+  onChange: (value: number) => void
+}) {
+  const rail = useRef<HTMLDivElement>(null)
+  const pct = Math.round(value * 100)
+  const lit = muted ? 0 : Math.round(value * SEGMENTS)
+
+  const setFromPointer = useCallback(
+    (clientY: number) => {
+      const el = rail.current
+      if (!el) return
+      const box = el.getBoundingClientRect()
+      onChange(Math.min(1, Math.max(0, 1 - (clientY - box.top) / box.height)))
+    },
+    [onChange],
+  )
+
+  const nudge = (delta: number) => onChange(Math.min(1, Math.max(0, value + delta)))
+
+  return (
+    <div className="flex shrink-0 select-none flex-col items-center gap-1">
+      <div className="flex h-22 items-stretch gap-2">
+        <div className="flex flex-col-reverse justify-between py-0.5" aria-hidden>
+          {Array.from({ length: SEGMENTS }, (_, i) => (
+            <span key={i} className={`h-1 w-7 rounded-[2px] ${i < lit ? 'bg-accent' : 'bg-white/10'}`} />
+          ))}
+        </div>
+        <div
+          ref={rail}
+          role="slider"
+          tabIndex={0}
+          aria-label="Volume"
+          aria-orientation="vertical"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+          aria-valuetext={muted ? 'muted' : `${pct}%`}
+          onPointerDown={e => {
+            e.currentTarget.setPointerCapture(e.pointerId)
+            setFromPointer(e.clientY)
+          }}
+          onPointerMove={e => {
+            if (e.buttons === 1) setFromPointer(e.clientY)
+          }}
+          onKeyDown={e => {
+            const step =
+              e.key === 'ArrowUp' || e.key === 'ArrowRight' ? 0.05
+              : e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -0.05
+              : e.key === 'PageUp' ? 0.1
+              : e.key === 'PageDown' ? -0.1
+              : 0
+            if (step) {
+              e.preventDefault()
+              nudge(step)
+            } else if (e.key === 'Home' || e.key === 'End') {
+              e.preventDefault()
+              onChange(e.key === 'Home' ? 0 : 1)
+            }
+          }}
+          className="relative w-9 cursor-ns-resize touch-none rounded-full border border-white/10 bg-black/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.85)] outline-none focus-visible:ring-1 focus-visible:ring-accent"
+        >
+          <span className="absolute bottom-2 left-1/2 top-2 w-px -translate-x-1/2 bg-white/10" />
+          <span
+            className="absolute left-1/2 h-4 w-8 -translate-x-1/2 rounded-md border border-white/15 bg-neutral-800 shadow-lg"
+            style={{ bottom: `calc(${value * 100}% - ${value * HANDLE}px)` }}
+          >
+            <span className="absolute left-1/2 top-1/2 h-px w-4 -translate-x-1/2 -translate-y-1/2 bg-accent" />
+          </span>
+        </div>
+      </div>
+      <span className={`font-mono text-[11px] tracking-[0.2em] ${muted ? 'text-neutral-600' : 'text-accent'}`}>
+        {muted ? 'MUTE' : `${String(pct).padStart(3, '0')}%`}
+      </span>
+    </div>
+  )
+}
