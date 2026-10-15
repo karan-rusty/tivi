@@ -3,6 +3,7 @@ import { Pause, Play, SkipForward, Trash2, Upload, Volume2, VolumeX } from 'luci
 import { Artwork } from './Artwork.tsx'
 import { useArtworkTheme } from './useArtworkTheme.ts'
 import { useJukebox } from './useJukebox.ts'
+import { VolumeSlider } from './VolumeSlider.tsx'
 
 const read = (key: string, fallback: string) => localStorage.getItem(key) ?? fallback
 
@@ -175,18 +176,13 @@ export default function App() {
               >
                 {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
               </button>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
+              <VolumeSlider
                 value={volume}
-                aria-label="Volume"
-                onChange={e => {
-                  setVolume(Number(e.target.value))
-                  localStorage.setItem('tivi.volume', e.target.value)
+                muted={muted}
+                onChange={next => {
+                  setVolume(next)
+                  localStorage.setItem('tivi.volume', String(next))
                 }}
-                className="w-24 accent-[var(--accent)]"
               />
             </div>
           </div>
