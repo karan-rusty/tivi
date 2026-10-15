@@ -18,6 +18,8 @@ plugged into the speakers plays it. No app to install — just a URL.
 - **Now playing** with a live progress bar, driven by the server's clock so every screen
   agrees on where the song is.
 - **Survives a refresh** — a new tab picks the song up mid-play instead of restarting it.
+- **A QR code to get in** — the saloon screen shows one; a phone scans it instead of being read
+  an IP address.
 
 ## Run it
 
@@ -44,6 +46,16 @@ Any host that runs a Node process works — Render, Railway, Fly, a box in the c
 
 The server binds to `$PORT`, so no host-specific config is needed. State lives in memory:
 one process, no database, and a restart empties the saloon (fine for a night of requests).
+
+The join QR is built from the machine's LAN IPv4 address — a phone cannot reach `localhost` — so
+set `JOIN_URL` when the saloon is behind a name, a reverse proxy or a tunnel:
+
+```bash
+JOIN_URL=https://tivi.example.com bun start    # the QR and the printed address both use this
+```
+
+In dev the UI is on `:5173` while the API is on `:8787`, so the QR points at `:8787` — set
+`JOIN_URL=http://<lan-ip>:5173` (with `bun run dev`) if you want to scan it before a build.
 
 Run it on more than one instance and the queue splits across them.
 
@@ -89,14 +101,26 @@ sequenceDiagram
 └───────┴──────────────────────────┴──────────────────┘
 ```
 
-- **Left: the sleeve**, with the name and the volume panel under it. The name is set down the
-  gutter in Limelight and lit by the record's colour; the volume is a segmented ladder beside a
-  pill track, drag it anywhere along its length or use the arrow keys.
+- **Left: the sleeve**, with the name and the volume panel under it. The name runs up the gutter in
+  the control-panel face, struck twice — a white pass and a second in the record's accent, stepped
+  down and right like misregistered ink. No glow: the accent is pigment here, not a light source.
+  A hairline and a 9px `78 rpm` spec sit beside it. The volume is a segmented ladder beside a pill
+  track, drag it anywhere along its length or use the arrow keys. Both live in the record's own
+  band rather than in the full-height left column, and the record is centred in that band, so the
+  sign and the fader line up with the sleeve instead of with the middle of the page — at 1440×900,
+  1440×1200, 1280×800 and 1152×780 their centre sits on the sleeve's centre to the pixel. The
+  *Join* button sits in the Library header: it opens the QR over everything, with the address
+  printed under it, and closes on Escape, on the X, or on a click outside. It is the only thing on
+  screen asking to be scanned, so it stays out of the way until somebody wants it.
 - **Right: everything you touch.** Add-music controls, the line, and the library.
 - **The theme comes from the record.** `useArtworkTheme` runs node-vibrant over the cover and sets
-  `--accent` / `--tint` on the document, so the progress bar, buttons and page glow all take the
-  record's own colour. It takes a *vibrant* swatch rather than an average: a label scan is mostly
-  paper and black shellac, and averaging those gives grey.
+  `--accent` / `--tint` on the document, so the wordmark's second pass, the progress bar, buttons
+  and page glow all take the record's own colour. It takes a *vibrant* swatch rather than an
+  average: a label scan is mostly paper and black shellac, and averaging those gives grey. The QR
+  card rides the same variable, so it changes with the song — the six records land at 12.7–15.8:1
+  against the black modules, and even a pure-black accent (which the theme lifts toward white)
+  leaves 5.3:1, well past what a scanner needs. The modules themselves stay black: that is the part
+  the camera reads.
 - On a phone it stacks: sleeve, then line, then library.
 
 ## The tracks
@@ -151,8 +175,8 @@ are gone after a restart, so attach a volume if the library should survive the n
 
 ## Not built
 
-Search, a proper request line (a YouTube link shows as a request instead of an error), vote-to-skip
-and QR-code joining were all considered and left out to keep this small. The library is one array
+Search, a proper request line (a YouTube link shows as a request instead of an error), and
+vote-to-skip were all considered and left out to keep this small. The library is one array
 in `server/library.ts`, so any of them is additive.
 
 ## Layout
@@ -160,7 +184,7 @@ in `server/library.ts`, so any of them is additive.
 ```
 shared/     types shared by both sides
 server/     Hono app: library + queue state, SSE stream, archive.org resolver, static hosting
-src/        React UI: App.tsx, Artwork.tsx (sleeve + colour ASCII), useArtworkTheme.ts, useJukebox.ts
+src/        React UI: App.tsx, Artwork.tsx (sleeve + colour ASCII), Logo.tsx (the wordmark), useArtworkTheme.ts, useJukebox.ts
 public/     the six built-in audio files and their label scans (built into dist/)
 data/       runtime library: library.json + every uploaded or fetched track and cover (gitignored)
 ```
