@@ -28,3 +28,20 @@ function advance() {
 
 const AddBody = z.object({ trackId: z.string(), by: z.string().trim().max(32).optional() })
 const IdBody = z.object({ id: z.string() })
+
+const app = new Hono()
+
+app.get('/api/state', c => c.json(snapshot()))
+
+app.get('/api/events', c =>
+  streamSSE(c, async stream => {
+    listeners.add(stream)
+    stream.onAbort(() => {
+      listeners.delete(stream)
+    })
+    await stream.writeSSE({ event: 'state', data: JSON.stringify(snapshot()) })
+    await new Promise<void>(resolve => {
+      stream.onAbort(resolve)
+    })
+  }),
+)
