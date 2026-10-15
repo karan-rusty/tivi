@@ -84,7 +84,8 @@ sequenceDiagram
 │                              │  ┌─────────────┐ │
 │  title · artist · year       │  │ add a song  │ │
 │  ────── progress ──────      │  └─────────────┘ │
-│  ⏸ ⏭            🔈 ────○──   │  [Add] per song  │
+│  ⏸ ⏭              ▮▮▮  ▌     │  [Add] per song  │
+│                   vol        │                  │
 └──────────────────────────────┴──────────────────┘
 ```
 
