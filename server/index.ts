@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { networkInterfaces } from 'node:os'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
@@ -6,6 +7,7 @@ import { bodyLimit } from 'hono/body-limit'
 import { streamSSE } from 'hono/streaming'
 import type { SSEStreamingApi } from 'hono/streaming'
 import { z } from 'zod'
+import qrcode from 'qrcode-generator'
 import { resolveArchiveLink } from './archive.ts'
 import { addTrack, library } from './library.ts'
 import { cleanTitle, searchArchive, titleOfLink } from './lookup.ts'
@@ -16,7 +18,24 @@ const queue: QueueItem[] = []
 let playing: Playing | null = null
 const listeners = new Set<SSEStreamingApi>()
 
-const snapshot = (): Snapshot => ({ library, queue, playing, now: Date.now() })
+const port = Number(process.env.PORT ?? 8787)
+
+/* The screen in the saloon is usually opened on localhost, which no phone can reach, so the join
+   address is this machine's LAN one. JOIN_URL overrides it for a real name or a tunnel. */
+const lan = Object.values(networkInterfaces())
+  .flat()
+  .find(i => i?.family === 'IPv4' && !i.internal)
+const joinUrl = process.env.JOIN_URL ?? `http://${lan?.address ?? 'localhost'}:${port}`
+
+/* The address cannot change while the process lives, so the QR is encoded once, at boot. Only the
+   dark modules are painted: the light field is left transparent so the page can tint it from the
+   record. Black on a near-white field is what a scanner reads, so neither colour moves far. */
+const qr = qrcode(0, 'M')
+qr.addData(joinUrl)
+qr.make()
+const qrSvg = qr.createSvgTag({ cellSize: 4, margin: 8, scalable: true }).replace('fill="white"', 'fill="none"')
+
+const snapshot = (): Snapshot => ({ library, queue, playing, joinUrl, now: Date.now() })
 
 function broadcast() {
   const data = JSON.stringify(snapshot())
@@ -35,6 +54,16 @@ const IdBody = z.object({ id: z.string() })
 const app = new Hono()
 
 app.get('/api/state', c => c.json(snapshot()))
+
+/** The join QR the saloon screen shows: a phone scans it instead of being told an IP address. */
+app.get('/qr.svg', c =>
+  c.body(qrSvg, 200, {
+    'content-type': 'image/svg+xml',
+    // A restart can move the address (a new network, a new tunnel), so a browser must not pin this
+    // for a day and hand out a QR for wherever the saloon used to be.
+    'cache-control': 'public, max-age=60',
+  }),
+)
 
 app.get('/api/events', c =>
   streamSSE(c, async stream => {
@@ -188,5 +217,6 @@ app.use(
 /* One process serves the API, the audio and the built UI (after `bun run build`). */
 if (existsSync('dist')) app.use('*', serveStatic({ root: './dist' }))
 
-const port = Number(process.env.PORT ?? 8787)
-serve({ fetch: app.fetch, port }, info => console.log(`tivi on http://localhost:${info.port}`))
+serve({ fetch: app.fetch, port }, info =>
+  console.log(`tivi on http://localhost:${info.port} — phones join at ${joinUrl}`),
+)

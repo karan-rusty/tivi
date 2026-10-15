@@ -18,6 +18,7 @@
     "hono": "^4.13.13",
     "lucide-react": "^1.57.0",
     "node-vibrant": "^4.0.4",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tsx": "^4.23.15",

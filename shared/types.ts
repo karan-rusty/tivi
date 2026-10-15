@@ -28,5 +28,7 @@ export type Snapshot = {
   library: Track[]
   queue: QueueItem[]
   playing: Playing | null
+  /** Where a phone should open this jukebox — the LAN address, since the saloon screen is localhost. */
+  joinUrl: string
   now: number
 }
