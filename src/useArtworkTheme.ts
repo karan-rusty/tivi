@@ -1,48 +1,35 @@
 import { useEffect } from 'react'
-import { FastAverageColor } from 'fast-average-color'
-
-const fac = new FastAverageColor()
-const ALGOS = ['dominant', 'sqrt', 'simple'] as const
-
-/** How colourful a colour is, 0 (grey) to 1. */
-function saturation(c: number[]) {
-  const max = Math.max(...c)
-  return max === 0 ? 0 : (max - Math.min(...c)) / max
-}
+import { Vibrant } from 'node-vibrant/browser'
 
 /**
- * The current track's cover decides the accent colour of the whole page, the way a jukebox
- * lights up to match the record it is playing. Label scans are mostly paper, so the four
- * averaging algorithms are compared and the most colourful result wins. Falls back to amber
- * when a track has no art.
+ * The current track's cover decides the accent colour of the whole page, the way a jukebox lights
+ * up to match the record it is playing. Label scans are mostly paper and black shellac, so an
+ * average is always grey — this takes a *vibrant* swatch instead. Falls back to amber with no art.
  */
 export function useArtworkTheme(art?: string) {
   useEffect(() => {
-    const root = document.documentElement.style
-    if (!art) {
-      root.removeProperty('--accent')
-      root.removeProperty('--tint')
-      return
+    const style = document.documentElement.style
+    const clear = () => {
+      style.removeProperty('--accent')
+      style.removeProperty('--tint')
     }
+    if (!art) return clear()
     let alive = true
-    const img = new Image()
-    img.onload = () => {
-      if (!alive) return
-      try {
-        const picks = ALGOS.map(a => fac.getColor(img, { algorithm: a }).value.slice(0, 3))
-        const dominant = picks.reduce((best, c) => (saturation(c) > saturation(best) ? c : best), picks[0])
-        const average = picks[1] // 'sqrt', the library's default average
+    Vibrant.from(art)
+      .getPalette()
+      .then(palette => {
+        if (!alive) return
+        const swatch = palette.Vibrant ?? palette.LightVibrant ?? palette.DarkVibrant ?? palette.Muted
+        const tint = palette.DarkMuted ?? palette.Muted ?? swatch
+        if (!swatch) return clear()
+        const [r, g, b] = swatch.rgb
         // A dark cover would vanish against the near-black page, so lift it toward white.
-        const lum = (0.2126 * dominant[0] + 0.7152 * dominant[1] + 0.0722 * dominant[2]) / 255
-        const accent = lum < 0.42 ? dominant.map(c => Math.round(c + (255 - c) * 0.45)) : dominant
-        root.setProperty('--accent', `rgb(${accent.join(' ')})`)
-        root.setProperty('--tint', `rgb(${average.join(' ')} / 0.16)`)
-      } catch {
-        root.removeProperty('--accent')
-        root.removeProperty('--tint')
-      }
-    }
-    img.src = art
+        const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+        const accent = lum < 0.42 ? [r, g, b].map(c => Math.round(c + (255 - c) * 0.45)) : [r, g, b]
+        style.setProperty('--accent', `rgb(${accent.join(' ')})`)
+        if (tint) style.setProperty('--tint', `rgb(${tint.rgb.join(' ')} / 0.16)`)
+      })
+      .catch(clear)
     return () => {
       alive = false
     }
