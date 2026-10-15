@@ -9,6 +9,8 @@ import { VolumeSlider } from './VolumeSlider.tsx'
 
 const read = (key: string, fallback: string) => localStorage.getItem(key) ?? fallback
 
+type Hit = { url: string; title: string; artist: string; year: number }
+
 export default function App() {
   const { state, serverNow, add, skip, togglePause, remove } = useJukebox()
   const audio = useRef<HTMLAudioElement>(null)
@@ -19,6 +21,10 @@ export default function App() {
   const [link, setLink] = useState('')
   const [busy, setBusy] = useState('')
   const [note, setNote] = useState('')
+  const [flash, setFlash] = useState('')
+  const [asked, setAsked] = useState('')
+  const [found, setFound] = useState<Hit[]>([])
+  const [readLink, setReadLink] = useState<{ title: string; artist: string } | null>(null)
   const linkInput = useRef<HTMLInputElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const lastLoad = useRef(0)
@@ -39,6 +45,12 @@ export default function App() {
   const elapsed = playing ? Math.max(0, (playing.pausedAt ?? serverNow()) - playing.startedAt) / 1000 : 0
   const pct = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0
   const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
+
+  useEffect(() => {
+    if (!flash) return
+    const timer = setTimeout(() => setFlash(''), 3000)
+    return () => clearTimeout(timer)
+  }, [flash])
 
   // Terminal-style shortcuts, taught by the hint row at the foot of the panel.
   useEffect(() => {
@@ -115,20 +127,57 @@ export default function App() {
     if (out.id) addTrack(out.id)
   }
 
-  /** An archive.org link: the server caches the audio, so it plays like any other track. */
-  async function addLink() {
+  /** An explicit archive.org item: cache the audio, then put it on the line. */
+  async function addLink(url = link) {
     setNote('')
-    setBusy('fetching from archive.org…')
+    setFlash('')
+    setBusy('fetching the recording…')
     const res = await fetch('/api/library/link', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ url: link }),
+      body: JSON.stringify({ url }),
     })
     const out: { id?: string; error?: string } = await res.json().catch(() => ({}))
     setBusy('')
-    if (!res.ok) return setNote(out.error ?? 'could not add that link')
+    if (!res.ok) return setNote(out.error ?? 'could not add that')
     setLink('')
-    if (out.id) addTrack(out.id)
+    setFound([])
+    setAsked('')
+    if (out.id) {
+      addTrack(out.id)
+      setFlash('queued — it is on the line')
+    }
+  }
+
+  /**
+   * One box, three answers. An archive.org link is exact, so it goes straight in. Anything else
+   * that looks like a link is read for its title first, because a YouTube or Spotify link cannot
+   * be played here — but the song it names might exist in the public-domain catalogue. Plain text
+   * is simply searched.
+   */
+  async function look() {
+    const value = link.trim()
+    if (!value) return
+    if (/^https?:\/\/(?:www\.)?archive\.org\//i.test(value)) return addLink(value)
+    setNote('')
+    setFlash('')
+    setBusy('looking it up…')
+    const res = await fetch('/api/inspect', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ value }),
+    })
+    const out: {
+      link?: { title: string; artist: string } | null
+      query?: string
+      results?: Hit[]
+      error?: string
+    } = await res.json().catch(() => ({}))
+    setBusy('')
+    if (!res.ok) return setNote(out.error ?? 'could not look that up')
+    setReadLink(out.link ?? null)
+    setAsked(out.query ?? value)
+    setFound(out.results ?? [])
   }
 
   return (
@@ -327,21 +376,49 @@ export default function App() {
             <input
               ref={linkInput}
               value={link}
-              placeholder="or paste an archive.org link"
+              placeholder="a song name, or a link from anywhere"
               onChange={e => setLink(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && void look()}
               className="min-w-40 flex-1 rounded-md bg-white/5 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
             />
             <button
               type="button"
-              onClick={() => void addLink()}
-              disabled={!link || !!busy}
+              onClick={() => void look()}
+              disabled={!link.trim() || !!busy}
               className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-neutral-950 hover:brightness-110 disabled:opacity-40"
             >
-              Add
+              Find
             </button>
           </div>
           {busy && <p className="mb-2 text-xs text-accent">{busy}</p>}
           {note && <p className="mb-2 text-xs text-red-400">{note}</p>}
+          {flash && <p className="mb-2 text-xs text-accent">{flash}</p>}
+          {found.length > 0 && (
+            <ul className="mb-2 overflow-hidden rounded-lg bg-white/5">
+              {found.map(hit => (
+                <li key={hit.url}>
+                  <button
+                    type="button"
+                    onClick={() => void addLink(hit.url)}
+                    className="flex w-full items-baseline gap-2 px-2 py-1.5 text-left text-xs hover:bg-white/10"
+                  >
+                    <span className="w-3 shrink-0 text-accent">+</span>
+                    <span className="min-w-0 flex-1 truncate text-neutral-200">{hit.title}</span>
+                    <span className="max-w-32 truncate text-neutral-500">{hit.artist}</span>
+                    <span className="tabular shrink-0 text-neutral-600">{hit.year || ''}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {asked && !busy && found.length === 0 && (
+            <p className="mb-2 text-xs text-neutral-500">
+              nothing playable for “{asked}”
+              {readLink
+                ? ` — that link is “${readLink.title}”, and links from YouTube or Spotify cannot be streamed here. Only public-domain recordings can, so try the artist instead.`
+                : ' — try fewer words, or the artist.'}
+            </p>
+          )}
           <ul className="min-h-0 flex-1 overflow-y-auto">
             {library.map(t => (
               <li key={t.id} className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-white/5">
