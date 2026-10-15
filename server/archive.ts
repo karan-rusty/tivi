@@ -48,13 +48,31 @@ export async function resolveArchiveLink(link: string): Promise<Track | { error:
   if (!audio?.ok) return { error: 'could not download the audio from archive.org' }
   const slug = id.replace(/[^a-z0-9-]/gi, '-').toLowerCase()
   const name = `${slug}.mp3`
-  mkdirSync('data/tracks', { recursive: true })
-  writeFileSync(`data/tracks/${name}`, Buffer.from(await audio.arrayBuffer()))
+  mkdirSync('data/media', { recursive: true })
+  writeFileSync(`data/media/${name}`, Buffer.from(await audio.arrayBuffer()))
+
+  // Best effort: the record label scan doubles as the artwork.
+  let art: string | undefined
+  const scans = files
+    .filter(f => /\.(jpe?g|png)$/i.test(f.name) && !/spectrogram|_thumb/i.test(f.name))
+    .sort((a, b) => Number(b.size ?? 0) - Number(a.size ?? 0))
+  if (scans[0] && Number(scans[0].size ?? 0) < 500_000) {
+    const img = await fetch(`https://archive.org/download/${id}/${encodeURIComponent(scans[0].name)}`, {
+      signal: AbortSignal.timeout(20_000),
+    }).catch(() => null)
+    if (img?.ok) {
+      const ext = scans[0].name.toLowerCase().endsWith('.png') ? 'png' : 'jpg'
+      art = `/media/${slug}.${ext}`
+      writeFileSync(`data/media/${slug}.${ext}`, Buffer.from(await img.arrayBuffer()))
+    }
+  }
+
   return {
     id: slug,
     title: metadata.title?.slice(0, 80) ?? slug,
     artist: credit(metadata.creator),
     year: Number(metadata.date?.slice(0, 4)) || new Date().getFullYear(),
     src: `/media/${name}`,
+    art,
   }
 }

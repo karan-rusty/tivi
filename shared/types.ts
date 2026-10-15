@@ -5,6 +5,8 @@ export type Track = {
   year: number
   /** Playable path. Built-in files sit under /tracks, anything added at runtime under /media. */
   src: string
+  /** Cover/label scan, same origin so the browser can read its pixels. Missing for uploads. */
+  art?: string
 }
 
 export type QueueItem = {

@@ -120,8 +120,8 @@ app.post('/api/library', async c => {
   if (library.length >= MAX_TRACKS) return c.json({ error: 'the library is full' }, 409)
   const id = crypto.randomUUID()
   const name = `${id}.${ext}`
-  mkdirSync('data/tracks', { recursive: true })
-  writeFileSync(`data/tracks/${name}`, Buffer.from(await file.arrayBuffer()))
+  mkdirSync('data/media', { recursive: true })
+  writeFileSync(`data/media/${name}`, Buffer.from(await file.arrayBuffer()))
   const track = {
     id,
     title: file.name.replace(/\.[^.]+$/, '').trim().slice(0, 80) || 'untitled',
@@ -152,10 +152,10 @@ app.post('/api/library/link', async c => {
 
 /* Uploads live outside dist/, which the build wipes. serveStatic joins the whole request path,
    so the /media prefix has to come back off before it looks on disk. */
-mkdirSync('data/tracks', { recursive: true })
+mkdirSync('data/media', { recursive: true })
 app.use(
   '/media/*',
-  serveStatic({ root: './data/tracks', rewriteRequestPath: p => p.replace(/^\/media/, '') }),
+  serveStatic({ root: './data/media', rewriteRequestPath: p => p.replace(/^\/media/, '') }),
 )
 
 /* One process serves the API, the audio and the built UI (after `bun run build`). */
