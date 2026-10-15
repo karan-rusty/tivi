@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
 import { streamSSE } from 'hono/streaming'
 import type { SSEStreamingApi } from 'hono/streaming'
 import { z } from 'zod'
@@ -101,7 +102,14 @@ const AUDIO_EXT: Record<string, string> = {
 const MAX_UPLOAD = 25 * 1024 * 1024
 const MAX_TRACKS = 60
 
-/** Anyone holding the URL can add music, so everything user-supplied is capped and rerouted. */
+/* Anyone holding the URL can add music, so everything user-supplied is capped and rerouted.
+   bodyLimit rejects on content-length first, before the body is buffered in memory at all. */
+app.use(
+  '/api/library',
+  bodyLimit({ maxSize: MAX_UPLOAD, onError: c => c.json({ error: 'that file is over 25 MB' }, 413) }),
+)
+
+/** Upload a file off a phone. Anyone with the URL can do this — hence the caps. */
 app.post('/api/library', async c => {
   const body = await c.req.parseBody()
   const file = body.file
