@@ -85,3 +85,9 @@ app.delete('/api/queue/:id', c => {
   broadcast()
   return c.json(snapshot())
 })
+
+/* One process serves the API, the audio and the built UI (after `bun run build`). */
+if (existsSync('dist')) app.use('*', serveStatic({ root: './dist' }))
+
+const port = Number(process.env.PORT ?? 8787)
+serve({ fetch: app.fetch, port }, info => console.log(`dustline jukebox on http://localhost:${info.port}`))
