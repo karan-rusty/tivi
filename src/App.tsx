@@ -13,7 +13,6 @@ export default function App() {
   const [muted, setMuted] = useState(() => read('tivi.muted', 'no') === 'yes')
   const [name, setName] = useState(() => read('tivi.name', ''))
   const [duration, setDuration] = useState(0)
-  const [sound, setSound] = useState(false) // has this tab managed to start playing
   const [link, setLink] = useState('')
   const [busy, setBusy] = useState('')
   const [note, setNote] = useState('')
@@ -26,9 +25,6 @@ export default function App() {
   // Position comes from the shared clock, so every screen in the saloon agrees.
   const elapsed = playing ? Math.max(0, (playing.pausedAt ?? serverNow()) - playing.startedAt) / 1000 : 0
   const pct = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0
-  // Browsers block audio until this tab has had a gesture, and there is only something to unlock
-  // while a song is actually running — not while the room has it paused.
-  const needsTap = Boolean(playing && playing.pausedAt === null && !sound)
 
   function sync() {
     const el = audio.current
@@ -48,7 +44,8 @@ export default function App() {
       if (Math.abs(el.currentTime - target) > 1.5) el.currentTime = Math.max(0, target)
     }
     if (playing.pausedAt !== null) return el.pause()
-    if (el.paused) void el.play().then(() => setSound(true)).catch(() => setSound(false))
+    // Before this device's first gesture the browser refuses and this rejects — the next one retries.
+    if (el.paused) void el.play().catch(() => {})
   }
 
   useEffect(sync) // runs after every render: the server state is the only source of truth
@@ -57,10 +54,7 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  const addTrack = (trackId: string) => {
-    setSound(true) // the click is the gesture that unblocks audio for this tab
-    void add(trackId, name)
-  }
+  const addTrack = (trackId: string) => void add(trackId, name)
 
   /** A file off someone's phone: upload it to the saloon, then put it straight on the line. */
   async function upload(file: File) {
@@ -92,7 +86,13 @@ export default function App() {
   }
 
   return (
-    <div className="relative isolate min-h-dvh text-neutral-100 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden">
+    <div
+      className="relative isolate min-h-dvh text-neutral-100 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden"
+      // Browsers only allow audio after a real gesture, so the first one anywhere in the page
+      // unlocks this device — no prompt, no button. Capture, so it fires before anything else.
+      onPointerDownCapture={sync}
+      onKeyDownCapture={sync}
+    >
       {/* The room is lit by whatever is on the turntable: the cover blown up past the viewport,
           blurred, and dimmed behind a scrim so the text stays readable. */}
       <div aria-hidden className="fixed inset-0 -z-30 bg-neutral-950" />
@@ -114,9 +114,7 @@ export default function App() {
         }}
       />
       <main
-        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 p-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[auto_minmax(0,1fr)_22rem] lg:grid-rows-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:p-4 ${
-          needsTap ? 'pb-28' : ''
-        }`}
+        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 p-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[auto_minmax(0,1fr)_22rem] lg:grid-rows-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:p-4`}
       >
         {/* The name, set as a sign down the gutter and lit by whatever record is on. */}
         <div className="hidden items-center justify-center lg:row-span-2 lg:flex">
@@ -302,21 +300,6 @@ export default function App() {
           </p>
         </section>
       </main>
-
-      {needsTap && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-accent/30 bg-neutral-900/95 px-4 py-3 backdrop-blur">
-          <button
-            type="button"
-            onClick={() => {
-              setSound(true)
-              sync()
-            }}
-            className="mx-auto flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-neutral-950 hover:brightness-110"
-          >
-            <Volume2 size={16} /> Tap to play sound on this device
-          </button>
-        </div>
-      )}
 
       <audio
         ref={audio}

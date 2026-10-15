@@ -70,8 +70,8 @@ sequenceDiagram
   spot. `now` rides along in every snapshot so clients can cancel out clock drift.
 - Every tab plays the same song. That is the point of a jukebox, and it is why the volume
   control is local: turn it up on the machine wired to the speakers.
-- Browsers do not allow audio before a user gesture, so a tab that has never been clicked
-  shows a *Tap to turn on the speakers* button. Clicking anything (including *Add*) counts.
+- Browsers do not allow audio before a user gesture, so the first click or key press anywhere in a
+  tab starts sound on that device. There is no prompt for it; the page just takes the gesture.
 - `POST /api/next` carries the id of the song the caller thinks is playing. Whichever tab
   reaches the end first wins; the others are ignored, so six tabs do not skip six songs.
 
