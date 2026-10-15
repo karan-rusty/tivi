@@ -89,10 +89,27 @@ export default function App() {
   }
 
   return (
-    <div
-      className="min-h-dvh bg-neutral-950 text-neutral-100"
-      style={{ backgroundImage: 'radial-gradient(90% 45% at 50% -5%, var(--tint, transparent), transparent)' }}
-    >
+    <div className="relative isolate min-h-dvh text-neutral-100">
+      {/* The room is lit by whatever is on the turntable: the cover blown up past the viewport,
+          blurred, and dimmed behind a scrim so the text stays readable. */}
+      <div aria-hidden className="fixed inset-0 -z-30 bg-neutral-950" />
+      {track?.art && (
+        <img
+          key={track.art}
+          src={track.art}
+          alt=""
+          aria-hidden
+          className="fixed inset-0 -z-20 h-full w-full scale-125 object-cover opacity-35 blur-3xl"
+        />
+      )}
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-10"
+        style={{
+          backgroundImage:
+            'radial-gradient(120% 70% at 50% 0%, var(--tint, transparent), transparent 75%), linear-gradient(rgba(10,10,10,0.5), rgba(10,10,10,0.85))',
+        }}
+      />
       <header className="flex items-baseline justify-between gap-4 border-b border-neutral-800 px-4 py-3">
         <h1 className="font-display text-2xl leading-none">tivi</h1>
         <p className="text-xs text-neutral-500">
