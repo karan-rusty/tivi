@@ -1,4 +1,4 @@
-# Dustline Jukebox
+# tivi
 
 A shared jukebox for the saloon. Anybody can queue a tune from their phone; one browser
 plugged into the speakers plays it. No app to install — just a URL.

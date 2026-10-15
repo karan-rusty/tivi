@@ -8,9 +8,9 @@ const read = (key: string, fallback: string) => localStorage.getItem(key) ?? fal
 export default function App() {
   const { state, serverNow, add, skip, togglePause, remove } = useJukebox()
   const audio = useRef<HTMLAudioElement>(null)
-  const [volume, setVolume] = useState(() => Number(read('jukebox.volume', '0.8')))
-  const [muted, setMuted] = useState(() => read('jukebox.muted', 'no') === 'yes')
-  const [name, setName] = useState(() => read('jukebox.name', ''))
+  const [volume, setVolume] = useState(() => Number(read('tivi.volume', '0.8')))
+  const [muted, setMuted] = useState(() => read('tivi.muted', 'no') === 'yes')
+  const [name, setName] = useState(() => read('tivi.name', ''))
   const [duration, setDuration] = useState(0)
   const [sound, setSound] = useState(false) // has this tab managed to start playing
   const [, tick] = useState(0)
@@ -57,7 +57,7 @@ export default function App() {
   return (
     <div className="min-h-dvh bg-neutral-950 text-neutral-100">
       <header className="flex items-baseline justify-between gap-4 border-b border-neutral-800 px-4 py-3">
-        <h1 className="text-lg font-semibold tracking-tight">🥃 Dustline Jukebox</h1>
+        <h1 className="text-lg font-semibold tracking-tight">tivi</h1>
         <p className="text-xs text-neutral-500">
           {state ? `${state.queue.length} in line` : 'connecting…'}
         </p>
@@ -98,7 +98,7 @@ export default function App() {
                 onClick={() => {
                   const next = !muted
                   setMuted(next)
-                  localStorage.setItem('jukebox.muted', next ? 'yes' : 'no')
+                  localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
                 }}
                 aria-label={muted ? 'Unmute' : 'Mute'}
                 className="rounded-lg border border-neutral-700 p-2 hover:bg-neutral-800"
@@ -114,7 +114,7 @@ export default function App() {
                 aria-label="Volume"
                 onChange={e => {
                   setVolume(Number(e.target.value))
-                  localStorage.setItem('jukebox.volume', e.target.value)
+                  localStorage.setItem('tivi.volume', e.target.value)
                 }}
                 className="w-24 accent-amber-500"
               />
@@ -165,7 +165,7 @@ export default function App() {
                 placeholder="a stranger"
                 onChange={e => {
                   setName(e.target.value)
-                  localStorage.setItem('jukebox.name', e.target.value)
+                  localStorage.setItem('tivi.name', e.target.value)
                 }}
                 className="w-32 rounded-md border border-neutral-800 bg-neutral-900 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
               />

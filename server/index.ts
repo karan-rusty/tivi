@@ -90,4 +90,4 @@ app.delete('/api/queue/:id', c => {
 if (existsSync('dist')) app.use('*', serveStatic({ root: './dist' }))
 
 const port = Number(process.env.PORT ?? 8787)
-serve({ fetch: app.fetch, port }, info => console.log(`dustline jukebox on http://localhost:${info.port}`))
+serve({ fetch: app.fetch, port }, info => console.log(`tivi on http://localhost:${info.port}`))
