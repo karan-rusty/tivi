@@ -214,37 +214,38 @@ export default function App() {
         }}
       />
       <main
-        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 p-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[auto_minmax(0,1fr)_22rem] lg:grid-rows-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:p-4`}
+        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 p-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:p-4`}
       >
-        {/* The name as a sign down the gutter, with the volume panel under it. */}
-        <div className="hidden items-center justify-center lg:row-span-2 lg:flex">
-          <div className="flex flex-col items-center gap-8">
-            <Logo vertical />
-            <VolumeSlider
-              value={volume}
-              muted={muted}
-              level={spectrum.level}
-              armed={spectrum.online}
-              onChange={next => {
-                setVolume(next)
-                localStorage.setItem('tivi.volume', String(next))
-              }}
-              onToggleMute={() => {
-                const next = !muted
-                setMuted(next)
-                localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
-              }}
-            />
-          </div>
-        </div>
         <section className="flex min-h-0 flex-col gap-3 lg:row-span-2">
           <div className="flex items-baseline justify-between lg:hidden">
             <Logo />
             <span className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</span>
           </div>
           <p className="hidden text-[11px] uppercase tracking-[0.2em] text-accent/80 lg:block">Now playing</p>
-          <div className="flex min-h-0 flex-1 items-center justify-center lg:[container-type:size]">
-            <Artwork track={track} />
+          {/* The sign and the fader sit in the record's own band, and the record is centred in it:
+              that is what lines them up with the sleeve rather than with the middle of the page. */}
+          <div className="flex min-h-0 flex-1 items-stretch gap-4 lg:gap-6">
+            <div className="hidden flex-col items-center justify-center gap-8 lg:flex">
+              <Logo vertical />
+              <VolumeSlider
+                value={volume}
+                muted={muted}
+                level={spectrum.level}
+                armed={spectrum.online}
+                onChange={next => {
+                  setVolume(next)
+                  localStorage.setItem('tivi.volume', String(next))
+                }}
+                onToggleMute={() => {
+                  const next = !muted
+                  setMuted(next)
+                  localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
+                }}
+              />
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center lg:[container-type:size]">
+              <Artwork track={track} />
+            </div>
           </div>
           <h2 className="truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
           <p className="text-sm text-neutral-400">
