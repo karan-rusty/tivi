@@ -154,3 +154,74 @@ export default function App() {
             </p>
           )}
         </section>
+
+        <section>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-medium text-neutral-400">Library</h3>
+            <label className="flex items-center gap-2 text-xs text-neutral-500">
+              Adding as
+              <input
+                value={name}
+                placeholder="a stranger"
+                onChange={e => {
+                  setName(e.target.value)
+                  localStorage.setItem('jukebox.name', e.target.value)
+                }}
+                className="w-32 rounded-md border border-neutral-800 bg-neutral-900 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
+              />
+            </label>
+          </div>
+          <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
+            {TRACKS.map(t => (
+              <li key={t.id} className="flex items-center gap-3 px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm">{t.title}</p>
+                  <p className="truncate text-xs text-neutral-500">
+                    {t.artist} · {t.year}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => addTrack(t.id)}
+                  className="rounded-md bg-amber-500 px-3 py-1 text-xs font-medium text-neutral-950 hover:bg-amber-400"
+                >
+                  Add
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-neutral-600">
+            Every browser plays the same song. Open this page on the machine wired to the saloon speakers, and tune
+            its volume there.
+          </p>
+        </section>
+      </main>
+
+      {playing && !sound && (
+        <div className="fixed inset-x-0 bottom-0 border-t border-amber-500/30 bg-neutral-900/95 px-4 py-3 backdrop-blur">
+          <button
+            type="button"
+            onClick={() => {
+              setSound(true)
+              sync()
+            }}
+            className="mx-auto flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-amber-400"
+          >
+            <Volume2 size={16} /> Tap to turn on the speakers
+          </button>
+        </div>
+      )}
+
+      <audio
+        ref={audio}
+        preload="auto"
+        onLoadedMetadata={e => {
+          setDuration(e.currentTarget.duration)
+          sync()
+        }}
+        onCanPlay={sync}
+        onEnded={() => playing && void skip(playing.id)}
+      />
+    </div>
+  )
+}
