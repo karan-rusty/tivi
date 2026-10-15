@@ -54,3 +54,70 @@ export default function App() {
     void add(trackId, name)
   }
 
+  return (
+    <div className="min-h-dvh bg-neutral-950 text-neutral-100">
+      <header className="flex items-baseline justify-between gap-4 border-b border-neutral-800 px-4 py-3">
+        <h1 className="text-lg font-semibold tracking-tight">🥃 Dustline Jukebox</h1>
+        <p className="text-xs text-neutral-500">
+          {state ? `${state.queue.length} in line` : 'connecting…'}
+        </p>
+      </header>
+
+      <main className="mx-auto max-w-3xl space-y-6 p-4">
+        <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-amber-500/80">Now playing</p>
+          <h2 className="mt-1 truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
+          <p className="text-sm text-neutral-400">
+            {track ? `${track.artist} · ${track.year}` : 'Add a tune below to start the night'}
+          </p>
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
+            <div className="h-full bg-amber-500 transition-[width] duration-1000 ease-linear" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void togglePause()}
+              disabled={!playing}
+              aria-label={playing?.pausedAt === null ? 'Pause' : 'Play'}
+              className="rounded-lg border border-neutral-700 p-2 hover:bg-neutral-800 disabled:opacity-40"
+            >
+              {playing && playing.pausedAt === null ? <Pause size={16} /> : <Play size={16} />}
+            </button>
+            <button
+              type="button"
+              onClick={() => playing && void skip(playing.id)}
+              disabled={!playing}
+              aria-label="Skip"
+              className="rounded-lg border border-neutral-700 p-2 hover:bg-neutral-800 disabled:opacity-40"
+            >
+              <SkipForward size={16} />
+            </button>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !muted
+                  setMuted(next)
+                  localStorage.setItem('jukebox.muted', next ? 'yes' : 'no')
+                }}
+                aria-label={muted ? 'Unmute' : 'Mute'}
+                className="rounded-lg border border-neutral-700 p-2 hover:bg-neutral-800"
+              >
+                {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={volume}
+                aria-label="Volume"
+                onChange={e => {
+                  setVolume(Number(e.target.value))
+                  localStorage.setItem('jukebox.volume', e.target.value)
+                }}
+                className="w-24 accent-amber-500"
+              />
+            </div>
+          </div>
+        </section>
