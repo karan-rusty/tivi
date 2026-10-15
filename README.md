@@ -5,11 +5,14 @@ plugged into the speakers plays it. No app to install — just a URL.
 
 ## What it does
 
-- **Library of 6 tracks** — 1920s 78s, public domain, served straight from this repo.
+- **Library of 6 tracks** — 1920s 78s, public domain, served straight from this repo with their
+  record label scans.
 - **Anyone can add music** — upload a file off a phone, or paste an archive.org link; the server
   caches the audio, and the track joins everyone's library instantly.
 - **Anyone can queue** — visitors hit *Add*; the queue is shared across every open tab and
   phone through a server-sent-events stream.
+- **A screen that listens to the record** — the sleeve is shown at full size, the whole UI takes
+  its accent colour from the cover, and one tap renders it as colour ASCII.
 - **Play, pause, skip, volume** — pause/skip are shared (it is one jukebox, not six);
   volume and mute are local to the browser you are listening on.
 - **Now playing** with a live progress bar, driven by the server's clock so every screen
@@ -72,6 +75,29 @@ sequenceDiagram
 - `POST /api/next` carries the id of the song the caller thinks is playing. Whichever tab
   reaches the end first wins; the others are ignored, so six tabs do not skip six songs.
 
+## The screen
+
+```
+┌──────────────────────────────┬──────────────────┐
+│  the record, sleeve size     │  Up next  (line) │
+│  (or its colour-ASCII view)  │  Library         │
+│                              │  ┌─────────────┐ │
+│  title · artist · year       │  │ add a song  │ │
+│  ────── progress ──────      │  └─────────────┘ │
+│  ⏸ ⏭            🔈 ────○──   │  [Add] per song  │
+└──────────────────────────────┴──────────────────┘
+```
+
+- **Left: the sleeve.** The record label scan at full size, with a button that redraws it as
+  colour ASCII — each character takes the colour of the pixel it stands for, so the label stays
+  readable. Transport controls sit under it.
+- **Right: everything you touch.** Add-music controls, the line, and the library.
+- **The theme comes from the record.** `useArtworkTheme` runs node-vibrant over the cover and sets
+  `--accent` / `--tint` on the document, so the progress bar, buttons and page glow all take the
+  record's own colour. It takes a *vibrant* swatch rather than an average: a label scan is mostly
+  paper and black shellac, and averaging those gives grey.
+- On a phone it stacks: sleeve, then line, then library.
+
 ## The tracks
 
 Public domain, from the Library of Congress *National Jukebox* collection on
@@ -87,7 +113,10 @@ Public domain, from the Library of Congress *National Jukebox* collection on
 | Burning Sands | Yerkes Jazarimba Orchestra | 1922 |
 
 Swap in your own files by dropping them in `public/tracks/` and editing the seed in
-`server/library.ts`, or add them at runtime (below).
+`server/library.ts`, or add them at runtime (below). Label scans live in `public/tracks/art/`;
+archive.org items get theirs cached automatically. An **uploaded** file has no artwork, so it plays
+with a stand-in sleeve and the default amber theme — the only place the "theme follows the record"
+promise cannot hold.
 
 ## Adding music
 
@@ -122,7 +151,7 @@ in `server/library.ts`, so any of them is additive.
 ```
 shared/     types shared by both sides
 server/     Hono app: library + queue state, SSE stream, archive.org resolver, static hosting
-src/        React UI (App.tsx) and the SSE hook (useJukebox.ts)
-public/     the six built-in audio files (built into dist/)
-data/       runtime library: library.json + every uploaded or fetched track (gitignored)
+src/        React UI: App.tsx, Artwork.tsx (sleeve + colour ASCII), useArtworkTheme.ts, useJukebox.ts
+public/     the six built-in audio files and their label scans (built into dist/)
+data/       runtime library: library.json + every uploaded or fetched track and cover (gitignored)
 ```
