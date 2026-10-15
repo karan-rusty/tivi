@@ -21,6 +21,7 @@ export default function App() {
   const [note, setNote] = useState('')
   const linkInput = useRef<HTMLInputElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
+  const lastLoad = useRef(0)
   const [, tick] = useState(0)
 
   const library = state?.library ?? []
@@ -72,6 +73,12 @@ export default function App() {
     if (!el.currentSrc.endsWith(track.src)) {
       el.src = track.src
       el.load()
+      lastLoad.current = Date.now()
+    } else if (el.readyState === 0 && Date.now() - lastLoad.current > 4000) {
+      // A load that never completed (dropped request, suspended tab) would leave this tab silent
+      // for good, because the src already matches and nothing would ever retry it.
+      el.load()
+      lastLoad.current = Date.now()
     }
     el.volume = muted ? 0 : volume
     el.onerror = () => {
