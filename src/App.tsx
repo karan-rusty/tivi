@@ -92,7 +92,7 @@ export default function App() {
   }
 
   return (
-    <div className="relative isolate min-h-dvh text-neutral-100">
+    <div className="relative isolate min-h-dvh text-neutral-100 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden">
       {/* The room is lit by whatever is on the turntable: the cover blown up past the viewport,
           blurred, and dimmed behind a scrim so the text stays readable. */}
       <div aria-hidden className="fixed inset-0 -z-30 bg-neutral-950" />
@@ -113,22 +113,32 @@ export default function App() {
             'radial-gradient(120% 70% at 50% 0%, var(--tint, transparent), transparent 75%), linear-gradient(rgba(10,10,10,0.5), rgba(10,10,10,0.85))',
         }}
       />
-      <header className="flex items-baseline justify-between gap-4 border-b border-neutral-800 px-4 py-3">
-        <h1 className="font-display text-2xl leading-none">tivi</h1>
-        <p className="text-xs text-neutral-500">
-          {state ? `${state.queue.length} in line` : 'connecting…'}
-        </p>
-      </header>
-
       <main
-        className={`mx-auto grid max-w-6xl grid-cols-1 items-start gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_22rem] ${
+        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 p-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[auto_minmax(0,1fr)_22rem] lg:grid-rows-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:p-4 ${
           needsTap ? 'pb-28' : ''
         }`}
       >
-        <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 lg:row-span-3">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</p>
-          <Artwork track={track} />
-          <h2 className="mt-3 truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
+        {/* The name, set as a sign down the gutter and lit by whatever record is on. */}
+        <div className="hidden items-center justify-center lg:row-span-2 lg:flex">
+          <h1
+            className="font-display text-3xl leading-none tracking-[0.35em] text-neutral-400"
+            style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', textShadow: '0 0 26px var(--accent, #f59e0b)' }}
+          >
+            tivi
+          </h1>
+        </div>
+        <section className="flex min-h-0 flex-col gap-3 lg:row-span-2">
+          <div className="flex items-baseline justify-between lg:hidden">
+            <h1 className="font-display text-xl leading-none" style={{ textShadow: '0 0 22px var(--accent, #f59e0b)' }}>
+              tivi
+            </h1>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</span>
+          </div>
+          <p className="hidden text-[11px] uppercase tracking-[0.2em] text-accent/80 lg:block">Now playing</p>
+          <div className="flex min-h-0 flex-1 items-center justify-center">
+            <Artwork track={track} />
+          </div>
+          <h2 className="truncate text-xl font-semibold">{track?.title ?? 'Nothing on the turntable'}</h2>
           <p className="text-sm text-neutral-400">
             {track ? `${track.artist} · ${track.year}` : 'Add a tune below to start the night'}
           </p>
@@ -184,14 +194,17 @@ export default function App() {
           </div>
         </section>
 
-        <section>
-          <h3 className="mb-2 text-sm font-medium text-neutral-400">Up next</h3>
+        <section className="flex min-h-0 flex-col">
+          <h3 className="mb-1 flex items-baseline gap-2 text-sm font-medium text-neutral-400">
+            Up next
+            {state && <span className="text-xs font-normal text-neutral-600">{state.queue.length} in line</span>}
+          </h3>
           {state?.queue.length ? (
-            <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
+            <ul className="min-h-0 flex-1 overflow-y-auto">
               {state.queue.map((item, i) => {
                 const t = library.find(x => x.id === item.trackId)
                 return (
-                  <li key={item.id} className="flex items-center gap-3 px-3 py-2">
+                  <li key={item.id} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-white/5">
                     <span className="w-4 text-right text-xs text-neutral-600">{i + 1}</span>
                     <span className="min-w-0 flex-1 truncate text-sm">
                       {t?.title ?? item.trackId}
@@ -211,14 +224,14 @@ export default function App() {
               })}
             </ul>
           ) : (
-            <p className="rounded-xl border border-dashed border-neutral-800 px-3 py-6 text-center text-sm text-neutral-600">
+            <p className="rounded-lg border border-dashed border-neutral-800/70 px-3 py-6 text-center text-sm text-neutral-600">
               The line is empty.
             </p>
           )}
         </section>
 
-        <section>
-          <div className="mb-2 flex items-center justify-between gap-3">
+        <section className="flex min-h-0 flex-col">
+          <div className="mb-1 flex items-center justify-between gap-3">
             <h3 className="text-sm font-medium text-neutral-400">Library</h3>
             <label className="flex items-center gap-2 text-xs text-neutral-500">
               Adding as
@@ -229,7 +242,7 @@ export default function App() {
                   setName(e.target.value)
                   localStorage.setItem('tivi.name', e.target.value)
                 }}
-                className="w-32 rounded-md border border-neutral-800 bg-neutral-900 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
+                className="w-32 rounded-md bg-white/5 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
               />
             </label>
           </div>
@@ -251,7 +264,7 @@ export default function App() {
               value={link}
               placeholder="or paste an archive.org link"
               onChange={e => setLink(e.target.value)}
-              className="min-w-40 flex-1 rounded-md border border-neutral-800 bg-neutral-900 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
+              className="min-w-40 flex-1 rounded-md bg-white/5 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
             />
             <button
               type="button"
@@ -264,9 +277,9 @@ export default function App() {
           </div>
           {busy && <p className="mb-2 text-xs text-accent">{busy}</p>}
           {note && <p className="mb-2 text-xs text-red-400">{note}</p>}
-          <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
+          <ul className="min-h-0 flex-1 overflow-y-auto">
             {library.map(t => (
-              <li key={t.id} className="flex items-center gap-3 px-3 py-2">
+              <li key={t.id} className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-white/5">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm">{t.title}</p>
                   <p className="truncate text-xs text-neutral-500">

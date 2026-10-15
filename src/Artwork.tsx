@@ -51,7 +51,7 @@ export function Artwork({ track }: { track?: Track }) {
   const lines = useAscii(track?.art, ascii)
 
   return (
-    <div className="@container relative aspect-square w-full overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900">
+    <div className="@container relative aspect-square w-full shrink-0 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 lg:h-full lg:w-auto">
       {ascii && lines ? (
         <pre className="flex h-full w-full flex-col items-center justify-center overflow-hidden font-mono leading-[1.02] text-[2.6cqw]">
           {lines.map((line, y) => (
