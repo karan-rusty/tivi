@@ -3,7 +3,7 @@
 @import "@fontsource/ibm-plex-mono/latin-400.css";
 
 @theme {
-  /* The wordmark face: art-deco marquee, one weight, used nowhere else. */
+  /* The face on the stand-in sleeve, for tracks that arrive without artwork. */
   --font-display: "Limelight", ui-serif, serif;
   /* Everything else is set in a terminal face: this is a control panel, not a brochure. */
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;

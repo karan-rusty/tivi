@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, QrCode, SkipForward, Trash2, Upload, X } from 'lucide-react'
 import { Artwork } from './Artwork.tsx'
+import { Logo } from './Logo.tsx'
 import { Spectrum } from './Spectrum.tsx'
 import { useArtworkTheme } from './useArtworkTheme.ts'
 import { useJukebox } from './useJukebox.ts'
@@ -218,12 +219,7 @@ export default function App() {
         {/* The name as a sign down the gutter, with the volume panel under it. */}
         <div className="hidden items-center justify-center lg:row-span-2 lg:flex">
           <div className="flex flex-col items-center gap-8">
-            <h1
-              className="font-display text-3xl leading-none tracking-[0.35em] text-neutral-400"
-              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', textShadow: '0 0 26px var(--accent, #f59e0b)' }}
-            >
-              tivi
-            </h1>
+            <Logo vertical />
             <VolumeSlider
               value={volume}
               muted={muted}
@@ -243,9 +239,7 @@ export default function App() {
         </div>
         <section className="flex min-h-0 flex-col gap-3 lg:row-span-2">
           <div className="flex items-baseline justify-between lg:hidden">
-            <h1 className="font-display text-xl leading-none" style={{ textShadow: '0 0 22px var(--accent, #f59e0b)' }}>
-              tivi
-            </h1>
+            <Logo />
             <span className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</span>
           </div>
           <p className="hidden text-[11px] uppercase tracking-[0.2em] text-accent/80 lg:block">Now playing</p>
