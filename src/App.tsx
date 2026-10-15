@@ -26,6 +26,9 @@ export default function App() {
   // Position comes from the shared clock, so every screen in the saloon agrees.
   const elapsed = playing ? Math.max(0, (playing.pausedAt ?? serverNow()) - playing.startedAt) / 1000 : 0
   const pct = duration > 0 ? Math.min(100, (elapsed / duration) * 100) : 0
+  // Browsers block audio until this tab has had a gesture, and there is only something to unlock
+  // while a song is actually running — not while the room has it paused.
+  const needsTap = Boolean(playing && playing.pausedAt === null && !sound)
 
   function sync() {
     const el = audio.current
@@ -117,7 +120,11 @@ export default function App() {
         </p>
       </header>
 
-      <main className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <main
+        className={`mx-auto grid max-w-6xl grid-cols-1 items-start gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_22rem] ${
+          needsTap ? 'pb-28' : ''
+        }`}
+      >
         <section className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 lg:row-span-3">
           <p className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</p>
           <Artwork track={track} />
@@ -283,7 +290,7 @@ export default function App() {
         </section>
       </main>
 
-      {playing && !sound && (
+      {needsTap && (
         <div className="fixed inset-x-0 bottom-0 border-t border-accent/30 bg-neutral-900/95 px-4 py-3 backdrop-blur">
           <button
             type="button"
@@ -293,7 +300,7 @@ export default function App() {
             }}
             className="mx-auto flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-neutral-950 hover:brightness-110"
           >
-            <Volume2 size={16} /> Tap to turn on the speakers
+            <Volume2 size={16} /> Tap to play sound on this device
           </button>
         </div>
       )}
