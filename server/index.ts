@@ -5,6 +5,7 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import type { SSEStreamingApi } from 'hono/streaming'
 import { z } from 'zod'
+import { resolveArchiveLink } from './archive.ts'
 import { addTrack, library } from './library.ts'
 import type { Playing, QueueItem, Snapshot } from '../shared/types.ts'
 
@@ -120,6 +121,22 @@ app.post('/api/library', async c => {
     year: new Date().getFullYear(),
     src: `/media/${name}`,
   }
+  addTrack(track)
+  broadcast()
+  return c.json(track)
+})
+
+const LinkBody = z.object({ url: z.string().max(2048) })
+
+/** A pasted link becomes a real, cached track — YouTube/Spotify links are rejected with a reason. */
+app.post('/api/library/link', async c => {
+  const body = LinkBody.safeParse(await c.req.json().catch(() => null))
+  if (!body.success) return c.json({ error: 'send { url }' }, 400)
+  if (library.length >= MAX_TRACKS) return c.json({ error: 'the library is full' }, 409)
+  const track = await resolveArchiveLink(body.data.url)
+  if ('error' in track) return c.json(track, 400)
+  const known = library.find(t => t.id === track.id)
+  if (known) return c.json(known)
   addTrack(track)
   broadcast()
   return c.json(track)
