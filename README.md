@@ -6,6 +6,8 @@ plugged into the speakers plays it. No app to install — just a URL.
 ## What it does
 
 - **Library of 6 tracks** — 1920s 78s, public domain, served straight from this repo.
+- **Anyone can add music** — upload a file off a phone, or paste an archive.org link; the server
+  caches the audio, and the track joins everyone's library instantly.
 - **Anyone can queue** — visitors hit *Add*; the queue is shared across every open tab and
   phone through a server-sent-events stream.
 - **Play, pause, skip, volume** — pause/skip are shared (it is one jukebox, not six);
@@ -84,19 +86,43 @@ Public domain, from the Library of Congress *National Jukebox* collection on
 | Superstitious Blues | The Virginians (Ross Gorman) | 1924 |
 | Burning Sands | Yerkes Jazarimba Orchestra | 1922 |
 
-Swap in your own files by dropping them in `public/tracks/` and editing `shared/tracks.ts`.
+Swap in your own files by dropping them in `public/tracks/` and editing the seed in
+`server/library.ts`, or add them at runtime (below).
+
+## Adding music
+
+Two ways in, both from the browser, both ending as a local cached file so every listener still
+hears the same second as the built-in tracks:
+
+1. **Upload a file** — pick an mp3/ogg/wav/flac/m4a off your phone. Up to 25 MB per file, 60
+   tracks per library.
+2. **Paste an archive.org link** — `https://archive.org/details/<item>`. The server reads the
+   item's metadata, takes its **largest** mp3 (several items ship a truncated derivative that
+   would stall the queue), downloads it into `data/tracks/`, and titles the track from the item.
+
+What you add is queued immediately and shows up in everyone's library over the same SSE stream.
+Uploads and downloads live in `data/`, which is gitignored: on a host with an ephemeral disk they
+are gone after a restart, so attach a volume if the library should survive the night.
+
+YouTube and Spotify links are rejected with a reason, deliberately. Spotify playback needs Premium
+on **every** listener (and its 30-second previews are no longer available to new apps), and
+YouTube's terms require its own visible player of at least 200×200px and forbid separating the
+audio — so a link-playback path means either a subscription per guest or a video watch party that
+breaks the shared clock. Public-domain archive.org links give the same "paste a link" feel with
+none of that.
 
 ## Not built
 
-Search, a separate request line, vote-to-skip and QR-code joining were all considered and
-left out to keep this small. `shared/tracks.ts` is the only place a track is described, so
-adding any of them is additive.
+Search, a proper request line (a YouTube link shows as a request instead of an error), vote-to-skip
+and QR-code joining were all considered and left out to keep this small. The library is one array
+in `server/library.ts`, so any of them is additive.
 
 ## Layout
 
 ```
-shared/     types + the track list (used by both sides)
-server/     Hono app: queue state, SSE stream, static hosting of dist/
+shared/     types shared by both sides
+server/     Hono app: library + queue state, SSE stream, archive.org resolver, static hosting
 src/        React UI (App.tsx) and the SSE hook (useJukebox.ts)
-public/     the audio files
+public/     the six built-in audio files (built into dist/)
+data/       runtime library: library.json + every uploaded or fetched track (gitignored)
 ```
