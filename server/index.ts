@@ -1,11 +1,11 @@
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import type { SSEStreamingApi } from 'hono/streaming'
 import { z } from 'zod'
-import { library } from './library.ts'
+import { addTrack, library } from './library.ts'
 import type { Playing, QueueItem, Snapshot } from '../shared/types.ts'
 
 /* State lives in memory: one saloon, one night, one process. Restart = fresh room. */
@@ -85,6 +85,48 @@ app.delete('/api/queue/:id', c => {
   broadcast()
   return c.json(snapshot())
 })
+
+const AUDIO_EXT: Record<string, string> = {
+  'audio/mpeg': 'mp3',
+  'audio/mp3': 'mp3',
+  'audio/ogg': 'ogg',
+  'audio/wav': 'wav',
+  'audio/x-wav': 'wav',
+  'audio/flac': 'flac',
+  'audio/x-flac': 'flac',
+  'audio/mp4': 'm4a',
+  'audio/aac': 'aac',
+}
+const MAX_UPLOAD = 25 * 1024 * 1024
+const MAX_TRACKS = 60
+
+/** Anyone holding the URL can add music, so everything user-supplied is capped and rerouted. */
+app.post('/api/library', async c => {
+  const body = await c.req.parseBody()
+  const file = body.file
+  if (!(file instanceof File)) return c.json({ error: 'send an audio file in the "file" field' }, 400)
+  const ext = AUDIO_EXT[file.type]
+  if (!ext) return c.json({ error: `unsupported audio type: ${file.type || 'unknown'}` }, 415)
+  if (file.size > MAX_UPLOAD) return c.json({ error: 'that file is over 25 MB' }, 413)
+  if (library.length >= MAX_TRACKS) return c.json({ error: 'the library is full' }, 409)
+  const id = crypto.randomUUID()
+  const name = `${id}.${ext}`
+  mkdirSync('data/tracks', { recursive: true })
+  writeFileSync(`data/tracks/${name}`, Buffer.from(await file.arrayBuffer()))
+  const track = {
+    id,
+    title: file.name.replace(/\.[^.]+$/, '').trim().slice(0, 80) || 'untitled',
+    artist: 'uploaded in the saloon',
+    year: new Date().getFullYear(),
+    src: `/media/${name}`,
+  }
+  addTrack(track)
+  broadcast()
+  return c.json(track)
+})
+
+/* Uploads live outside dist/, which the build wipes. */
+app.use('/media/*', serveStatic({ root: './data/tracks' }))
 
 /* One process serves the API, the audio and the built UI (after `bun run build`). */
 if (existsSync('dist')) app.use('*', serveStatic({ root: './dist' }))
