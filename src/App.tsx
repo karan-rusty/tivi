@@ -12,6 +12,9 @@ export default function App() {
   const [name, setName] = useState(() => read('tivi.name', ''))
   const [duration, setDuration] = useState(0)
   const [sound, setSound] = useState(false) // has this tab managed to start playing
+  const [link, setLink] = useState('')
+  const [busy, setBusy] = useState('')
+  const [note, setNote] = useState('')
   const [, tick] = useState(0)
 
   const library = state?.library ?? []
@@ -51,6 +54,35 @@ export default function App() {
   const addTrack = (trackId: string) => {
     setSound(true) // the click is the gesture that unblocks audio for this tab
     void add(trackId, name)
+  }
+
+  /** A file off someone's phone: upload it to the saloon, then put it straight on the line. */
+  async function upload(file: File) {
+    setNote('')
+    setBusy(`uploading ${file.name}…`)
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch('/api/library', { method: 'POST', body: form })
+    const out: { id?: string; error?: string } = await res.json().catch(() => ({}))
+    setBusy('')
+    if (!res.ok) return setNote(out.error ?? 'upload failed')
+    if (out.id) addTrack(out.id)
+  }
+
+  /** An archive.org link: the server caches the audio, so it plays like any other track. */
+  async function addLink() {
+    setNote('')
+    setBusy('fetching from archive.org…')
+    const res = await fetch('/api/library/link', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ url: link }),
+    })
+    const out: { id?: string; error?: string } = await res.json().catch(() => ({}))
+    setBusy('')
+    if (!res.ok) return setNote(out.error ?? 'could not add that link')
+    setLink('')
+    if (out.id) addTrack(out.id)
   }
 
   return (
@@ -170,6 +202,37 @@ export default function App() {
               />
             </label>
           </div>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <label className="cursor-pointer rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-300 hover:bg-neutral-800">
+              Upload a file
+              <input
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                onChange={e => {
+                  const f = e.target.files?.[0]
+                  e.target.value = ''
+                  if (f) void upload(f)
+                }}
+              />
+            </label>
+            <input
+              value={link}
+              placeholder="or paste an archive.org link"
+              onChange={e => setLink(e.target.value)}
+              className="min-w-40 flex-1 rounded-md border border-neutral-800 bg-neutral-900 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
+            />
+            <button
+              type="button"
+              onClick={() => void addLink()}
+              disabled={!link || !!busy}
+              className="rounded-md bg-amber-500 px-3 py-1 text-xs font-medium text-neutral-950 hover:bg-amber-400 disabled:opacity-40"
+            >
+              Add
+            </button>
+          </div>
+          {busy && <p className="mb-2 text-xs text-amber-500">{busy}</p>}
+          {note && <p className="mb-2 text-xs text-red-400">{note}</p>}
           <ul className="divide-y divide-neutral-800 rounded-xl border border-neutral-800">
             {library.map(t => (
               <li key={t.id} className="flex items-center gap-3 px-3 py-2">
