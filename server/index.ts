@@ -142,8 +142,13 @@ app.post('/api/library/link', async c => {
   return c.json(track)
 })
 
-/* Uploads live outside dist/, which the build wipes. */
-app.use('/media/*', serveStatic({ root: './data/tracks' }))
+/* Uploads live outside dist/, which the build wipes. serveStatic joins the whole request path,
+   so the /media prefix has to come back off before it looks on disk. */
+mkdirSync('data/tracks', { recursive: true })
+app.use(
+  '/media/*',
+  serveStatic({ root: './data/tracks', rewriteRequestPath: p => p.replace(/^\/media/, '') }),
+)
 
 /* One process serves the API, the audio and the built UI (after `bun run build`). */
 if (existsSync('dist')) app.use('*', serveStatic({ root: './dist' }))
