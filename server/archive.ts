@@ -15,11 +15,13 @@ const ArchiveMeta = z.object({
 
 const MAX_FETCH = 40 * 1024 * 1024
 
-/** "gorman, ross ; williams, spencer" -> "Ross Gorman" */
+/** "gorman, ross ; williams, spencer" -> "Ross Gorman". Bracketed notes are dropped. */
 function credit(raw?: string) {
-  const [last, first] = (raw ?? '').split(';')[0].split(',').map(s => s.trim())
-  const name = first ? `${first} ${last}` : last
-  return name ? name.replace(/\b\w/g, l => l.toUpperCase()) : 'archive.org'
+  const bare = (raw ?? '').split(';')[0].replace(/\[[^\]]*\]|\([^)]*\)/g, ' ')
+  const [last, first] = bare.split(',').map(s => s.trim())
+  const name = (first ? `${first} ${last}` : last).replace(/\s+/g, ' ').trim()
+  if (!name) return 'archive.org'
+  return name.replace(/\b\w/g, l => l.toUpperCase()).slice(0, 48)
 }
 
 /**
@@ -29,7 +31,7 @@ function credit(raw?: string) {
 export async function resolveArchiveLink(link: string): Promise<Track | { error: string }> {
   const id = ARCHIVE_LINK.exec(link.trim())?.[1]
   if (!id) return { error: 'only archive.org links are supported so far' }
-  const res = await fetch(`https://archive.org/metadata/${id}`).catch(() => null)
+  const res = await fetch(`https://archive.org/metadata/${id}`, { signal: AbortSignal.timeout(20_000) }).catch(() => null)
   const parsed = ArchiveMeta.safeParse(res?.ok ? await res.json().catch(() => null) : null)
   if (!parsed.success) return { error: 'archive.org did not answer with item details' }
   const { metadata, files } = parsed.data
@@ -40,7 +42,9 @@ export async function resolveArchiveLink(link: string): Promise<Track | { error:
   const best = mp3s.sort((a, b) => b.bytes - a.bytes)[0]
   if (!best) return { error: 'that item has no mp3 to play' }
   if (best.bytes > MAX_FETCH) return { error: 'that item is over 40 MB' }
-  const audio = await fetch(`https://archive.org/download/${id}/${encodeURIComponent(best.name)}`).catch(() => null)
+  const audio = await fetch(`https://archive.org/download/${id}/${encodeURIComponent(best.name)}`, {
+    signal: AbortSignal.timeout(60_000),
+  }).catch(() => null)
   if (!audio?.ok) return { error: 'could not download the audio from archive.org' }
   const slug = id.replace(/[^a-z0-9-]/gi, '-').toLowerCase()
   const name = `${slug}.mp3`
