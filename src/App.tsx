@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Pause, Play, SkipForward, Trash2, Upload } from 'lucide-react'
+import { Pause, Play, QrCode, SkipForward, Trash2, Upload, X } from 'lucide-react'
 import { Artwork } from './Artwork.tsx'
 import { Spectrum } from './Spectrum.tsx'
 import { useArtworkTheme } from './useArtworkTheme.ts'
@@ -25,6 +25,7 @@ export default function App() {
   const [asked, setAsked] = useState('')
   const [found, setFound] = useState<Hit[]>([])
   const [readLink, setReadLink] = useState<{ title: string; artist: string } | null>(null)
+  const [joining, setJoining] = useState(false)
   const linkInput = useRef<HTMLInputElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const lastLoad = useRef(0)
@@ -66,6 +67,8 @@ export default function App() {
         const next = !muted
         setMuted(next)
         localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
+      } else if (e.key === 'Escape') {
+        setJoining(false)
       } else if (e.key === 'a') {
         e.preventDefault()
         linkInput.current?.focus()
@@ -345,18 +348,27 @@ export default function App() {
         <section className="flex min-h-0 flex-col">
           <div className="mb-1 flex items-center justify-between gap-3">
             <h3 className="text-sm font-medium text-neutral-400">Library</h3>
-            <label className="flex items-center gap-2 text-xs text-neutral-500">
-              Adding as
-              <input
-                value={name}
-                placeholder="a stranger"
-                onChange={e => {
-                  setName(e.target.value)
-                  localStorage.setItem('tivi.name', e.target.value)
-                }}
-                className="w-32 rounded-md bg-white/5 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
-              />
-            </label>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-xs text-neutral-500">
+                Adding as
+                <input
+                  value={name}
+                  placeholder="a stranger"
+                  onChange={e => {
+                    setName(e.target.value)
+                    localStorage.setItem('tivi.name', e.target.value)
+                  }}
+                  className="w-32 rounded-md bg-white/5 px-2 py-1 text-xs text-neutral-200 placeholder:text-neutral-600"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => setJoining(true)}
+                className="flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/20"
+              >
+                <QrCode size={13} /> Join
+              </button>
+            </div>
           </div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/20">
@@ -448,6 +460,42 @@ export default function App() {
           </p>
         </section>
       </main>
+
+      {/* Hidden until asked for: the QR is for the room, not for whoever is reading the panel. */}
+      {joining && state && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Join this jukebox"
+          onClick={() => setJoining(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="relative flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-neutral-900/95 p-5"
+          >
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setJoining(false)}
+              aria-label="Close"
+              className="absolute right-3 top-3 rounded-md p-1 text-neutral-500 hover:bg-white/5 hover:text-accent"
+            >
+              <X size={15} />
+            </button>
+            {/* The card is the light field, so it takes the record's accent; the modules stay
+                black, because that is the part a scanner reads. */}
+            <img
+              src="/qr.svg"
+              alt=""
+              className="h-64 w-64 rounded-xl border border-accent/40 bg-white p-3"
+              style={{ background: 'color-mix(in oklab, var(--accent, #f59e0b) 40%, white)' }}
+            />
+            <p className="font-mono text-sm text-accent">{state.joinUrl}</p>
+            <p className="text-xs text-neutral-500">Scan on a phone to add music from it</p>
+          </div>
+        </div>
+      )}
 
       <audio
         ref={audio}
