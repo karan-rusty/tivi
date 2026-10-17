@@ -125,3 +125,46 @@ export class Database {
     const results = await query.lean().exec();
     return results.map((doc) => this.StripMongoFields(doc as T));
   }
+
+  /**
+   * Add a new document with auto-generated MongoDb _id
+   */
+  async Add<T>(collection: string, data: Partical<T>): Promise<T> {
+    const model = this.GetModel(collection);
+    const doc = new model(data);
+    await doc.save();
+    return this.StripMongoFields(doc.toObject() as T);
+  }
+
+  async RunTransaction<T>(
+    updateFunction: (session: ClientSession) => Promise<T>
+  ): Promise<T> {
+    const session = await mongoose.startSession();
+    let commitCalled = false;
+    try {
+      session.startTransaction();
+      const result = await updateFunction(session);
+      commitCalled = true;
+      await session.commitTransaction();
+      return result;
+    } catch (error) {
+      if (!commitCalled) {
+        await session.abortTransaction();
+      }
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  async FindCustom<T>(
+    collection: string,
+    field: string,
+    operator: string,
+    value: unknown
+  ): Promise<T[]> {
+    const model = this.GetModel(collection);
+    const filter = this.BuildFilter(field, operator, value);
+    const result = await model.find(filter).lean().exec();
+    return results.map((doc) => this.StripMongoFields(doc as T));
+  }
