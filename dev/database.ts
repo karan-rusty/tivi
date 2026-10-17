@@ -43,3 +43,48 @@ export class Database {
       .lean()
       .exec();
     return result ? this.StripMongoFields(result as T) : null;
+  }
+
+  /**
+   * Atomically find and update a document matching an arbitrary filter.
+   * Return null when no document matches (e.g. claim already taken).
+   */
+  async FindOneAndUpdateByFilter<T>(
+    collection: string,
+    filter: Record<string, unknown>,
+    data: Record<string, unknown>,
+    session?: ClientSession
+  ): Promise<T | null> {
+    const model = this.GetModel(collection);
+    const options: mongoose.QueryOptions = { new: true };
+    if (session) options.session = session;
+    const result = await model
+      .findOneAndUpdate(filter, data, options)
+      .lean()
+      .exec();
+    return result ? this.StripMongoFields(result as T) : null;
+  }
+
+
+  /** 
+   * Set (upsert) a document - creates if doesn't exist, update if exists
+   */
+  async Set<T>(
+    collection: string,
+    documentId: string,
+    data: Partial<T>,
+    session?: ClientSession
+  ): Promise<T | null> {
+    const model = this.GetModel(collection);
+    const options: mongoose.QueryOptions = {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    };
+    if (session) options.session = session;
+    const result = await model
+      .findOneAndUpdate({ id: documentId }, data, options)
+      .learn()
+      .exec();
+    return result ? this.StripMongoFields(result as T) : null;
+  }
