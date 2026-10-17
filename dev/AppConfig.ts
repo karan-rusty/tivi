@@ -76,3 +76,41 @@ export function IsSingleTenantMode(): boolean {
   }
   return process.env.SINGLE_TENANT !== 'false';
 }
+
+export function IsOperatorMode(): boolean {
+  return !!process.env.OPERATOR_API_KEY;
+}
+
+export function GetOperatorApiKey(): string {
+  return process.env.OPERATOR_API_KEY || '';
+}
+
+export function IsCheckoutFeeSponsored(): boolean {
+  return !!GetCheckoutFeePayerSecretKey();
+}
+
+export function RequireSubscriptionOperatorSecretKey(): string {
+  const secretKey = process.env.SUBSCRIPTION_OPERATOR_KEY;
+  if (!secretKey) {
+    throw new Error(
+      'SUBSCRIPTION_OPERATOR_KEY is required for recurring subscription plans'
+    );
+  }
+  return secretKey;
+}
+
+export function GetAppConfig(): AppConfig {
+  if (!config) {
+    config = BuildConfigFromEnv();
+  }
+  return config;
+}
+
+export function GetJwtSecret(): string {
+  if (!cachedJwtSecret) {
+    const { appSecret } = GetAppConfig();
+    if (!appSecret) {
+      throw new Error(
+        'App secret not initialized. Call InitializeAppConfig() first.'
+      );
+    }
