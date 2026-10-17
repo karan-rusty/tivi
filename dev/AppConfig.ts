@@ -40,3 +40,39 @@ function ResolveSettlementRail(livemode: boolean): SettlementRail {
         'SETTLEMENT_RAIL=simulated is not valid when LIVEMODE=true'
       );
     }
+    return 'onchain';
+  }
+  if (rail === 'onchain') return 'onchain';
+  return 'simulated';
+}
+
+function BuildConfigFromEnv(): AppConfig {
+  const dashboardUrl = NormalizeOrigin(
+    process.env.DASHBOARD_URL ||
+    `http://localhost:${process.env.DASHBOARD_PORT || '80}`
+  );
+  const checkoutUrl = NormalizeOrigin(process.env.CHECKOUT_URL || dashboardUrl);
+  const paymentLinkUrl = NormalizeOrigin(
+    process.env.PAYMENT_LINK_URL || checkoutUrl
+  );
+  const livemode = process.env.LIVEMODE === 'true';
+
+  return {
+    mongodbUri:
+      process.env.MONGODB_URI ||
+      'mongodb://localhost:27017/zoneless?replicaSet=rs0',
+    dashboardUrl,
+    checkoutUrl,
+    paymentLinkUrl,
+    appSecret: process.env.APP_SECRET || '',
+    livemode,
+    settlement_rail: ResolveSettlementRail(livemode),
+  };
+}
+
+export function IsSingleTenantMode(): boolean {
+  if (IsOperatorMode()) {
+    return false;
+  }
+  return process.env.SINGLE_TENANT !== 'false';
+}
