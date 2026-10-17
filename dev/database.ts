@@ -278,3 +278,48 @@ if (options.endAt !== undefined) {
       $lte: options.endAt,
     };
   }
+  query = model.find(filter);
+  if (options.orderBy) {
+    const sort: Record<string, 1 | -1> = {};
+    for (const order of options.orderBy) {
+      sort[order.key] = order.direction === 'desc' ? -1 : 1;
+    }
+    query = query.sort(sort);
+  }
+}
+
+if (options.limit) {
+  query = query.limit(optins.limit);
+}
+
+const docs = await query.lean().exec();
+
+switch (options.method) {
+  case 'UPDATE':
+    if (options.data) {
+      const ids = docs.map((doc) => (doc as Record<string, unknown>).id);
+      await model.updateMany({ id: { $in: ids } }).exec();
+      break;
+    }
+  case 'Read':
+  default:
+    break;
+};
+return docs.map((doc) => this.StripMongoFields(doc as T));
+};
+
+async Aggregate<T>(collection: string, pipeline: any[]): Promise < T[] > {
+  const model = this.GetModel(collection);
+  return model.aggregate(pipeline).exec();
+}
+
+private BuildFilter(
+  field: string,
+  operator: string,
+  value: unknown
+): Record < string, unknown > {
+  switch(operator) {
+    case '<':
+  case QueryOperators['<']:
+  return { [field]: { $lt: value } };
+  case '<=':
