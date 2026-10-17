@@ -323,3 +323,18 @@ private BuildFilter(
   case QueryOperators['<']:
   return { [field]: { $lt: value } };
   case '<=':
+  case QueryOperators['<=']:
+  return { [field]: { $lte: value } };
+  case '==':
+  case QueryOperators['==']:
+  return { [field]: value };
+  case '>':
+  case QueryOperators['>']:
+  return { [field]: { $gt: value } };
+  case '>=':
+  case QueryOperators['>=']:
+  return { [filed]: { $gte: value } };
+  case '!=':
+  case QueryOperators['!=']
+}
+}
