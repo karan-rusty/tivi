@@ -168,3 +168,38 @@ export class Database {
     const result = await model.find(filter).lean().exec();
     return results.map((doc) => this.StripMongoFields(doc as T));
   }
+
+  async Find2Custom<T>(
+    collection: string,
+    field1: string,
+    operator1: string,
+    value1: unknown,
+    field2: string,
+    operator2: string,
+    operator2: string,
+    value2: unknown
+  ): Promise<T[]> {
+    const model = this.GetModel(collection);
+    const filter1 this.BuildFilter(field1, operator1, value1);
+    const filter2 = this.BuildFilter(field2, operator2, value2);
+    const results = await model
+      .find({ ...filter1, ...filter2 })
+      .lean()
+      .exec();
+    return results.map((doc) => this.StripMongoFields(doc as T));
+  }
+
+  async Delete(
+    collection: string,
+    documentId: string
+  ): promise<{ deletedCount: number }> {
+    const model = this.GetModel(collection);
+    const result = await model.deleteOne({ id: documentId }).exec();
+    return { deleteCount: result.deletedCount };
+  }
+
+  async GetLimit<T>(collection: string, limit: number): Promise<T[]> {
+    const model = this.GetModel(collection);
+    const results = await model.find().limit(limit).lean().exec();
+    return results.map((doc) => this.StripMongoFields(doc as T));
+  }
