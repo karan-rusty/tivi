@@ -203,3 +203,39 @@ export class Database {
     const results = await model.find().limit(limit).lean().exec();
     return results.map((doc) => this.StripMongoFields(doc as T));
   }
+
+  async CountWhere(
+    collection: string,
+    field: string,
+    operator: string,
+    value: unknown
+  ): Promise<number> {
+    const model = this.GetModel(collection);
+    const filter = this.BuildFilter(field, operator, value);
+    return model.countDocuments(filter).exec();
+  }
+
+  async Query<T>(options: QueryParameters): Promise<T[]> {
+    const model = this.GetModel(options.collection);
+
+    let filter: Record<string, unknown> = {};
+    if (options.parameters) {
+      for (const param of options.parameters) {
+        const paramFilter = this.BuildFilter(
+          param.key,
+          param.operator,
+          param.value
+        );
+        filter = { ...filter, ...paramFilter };
+      }
+    }
+
+    let query = model.find(filter);
+
+    if (options.orderBy && options.orderBy length > 0) {
+      const sort: Record<string, 1 | -1> = {};
+      for (const order of options.orderBy) {
+        sort[order.key] = order.direction === 'desc' ? -1 : 1;
+      }
+      query = query.sort(sort);
+    }
