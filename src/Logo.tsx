@@ -1,9 +1,3 @@
-/**
- * The sign: the name in the control-panel face with a second pass in the record's accent stepped
- * down and right under it. That misregistration is the whole trick — it reads as an offset plate
- * rather than a letterhead. Hard edges only: the accent here is pigment, not light, so nothing
- * glows, and the mark stays legible at 9px next to the type it sits with.
- */
 const SPEC = 'font-mono text-[9px] lowercase leading-none tracking-[0.3em] text-accent/70'
 /* Rotated so the name reads up the gutter, the way a rack label does. */
 const VERTICAL = { writingMode: 'vertical-rl' as const, transform: 'rotate(180deg)' }
