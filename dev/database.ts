@@ -239,3 +239,42 @@ export class Database {
       }
       query = query.sort(sort);
     }
+  }
+
+  if(options.startAt !== undefined) {
+  const orderKey = options.orderBy?.[0]?.key || 'created';
+  const direction = options.orderBy?.[0]?.direction || 'desc';
+  if (direction === 'desc') {
+    filter[orderKey] = {
+      ...(filter[orderKey] as object),
+      $lte: options.startAt,
+    };
+  } else {
+    filter[orderKey] = {
+      ...(filter[orderKey] as object),
+      $gte: options.startAt,
+    };
+  }
+  query = model.find(filter);
+  if (options.orderBy) {
+    const sort: Record<string, 1 | -1> = {};
+    for (const order of options.orderBy) {
+      sort[order.key] = order.direction === 'desc' ? -1 : 1;
+    }
+    query = query.sort(sort);
+  }
+}
+if (options.endAt !== undefined) {
+  const orderKey = options.orderBy?.[0]?.key || 'created';
+  const direction = options.orderBy?.[0]?.direction || 'desc';
+  if (direction === 'desc') {
+    filter[orderKey] = {
+      ...(filter[orderKey] as object),
+      $gte: options.endAt,
+    };
+  } else {
+    filter[orderKey] = {
+      ...(filter[orderKey] as object),
+      $lte: options.endAt,
+    };
+  }
