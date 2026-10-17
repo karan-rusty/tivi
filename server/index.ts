@@ -20,16 +20,11 @@ const listeners = new Set<SSEStreamingApi>()
 
 const port = Number(process.env.PORT ?? 8787)
 
-/* The screen in the saloon is usually opened on localhost, which no phone can reach, so the join
-   address is this machine's LAN one. JOIN_URL overrides it for a real name or a tunnel. */
 const lan = Object.values(networkInterfaces())
   .flat()
   .find(i => i?.family === 'IPv4' && !i.internal)
 const joinUrl = process.env.JOIN_URL ?? `http://${lan?.address ?? 'localhost'}:${port}`
 
-/* The address cannot change while the process lives, so the QR is encoded once, at boot. Only the
-   dark modules are painted: the light field is left transparent so the page can tint it from the
-   record. Black on a near-white field is what a scanner reads, so neither colour moves far. */
 const qr = qrcode(0, 'M')
 qr.addData(joinUrl)
 qr.make()
@@ -39,7 +34,7 @@ const snapshot = (): Snapshot => ({ library, queue, playing, joinUrl, now: Date.
 
 function broadcast() {
   const data = JSON.stringify(snapshot())
-  for (const l of listeners) void l.writeSSE({ event: 'state', data }).catch(() => {})
+  for (const l of listeners) void l.writeSSE({ event: 'state', data }).catch(() => { })
 }
 
 /** Pull the next request off the line and put it on the turntable. */
@@ -55,7 +50,6 @@ const app = new Hono()
 
 app.get('/api/state', c => c.json(snapshot()))
 
-/** The join QR the saloon screen shows: a phone scans it instead of being told an IP address. */
 app.get('/qr.svg', c =>
   c.body(qrSvg, 200, {
     'content-type': 'image/svg+xml',
@@ -87,7 +81,6 @@ app.post('/api/queue', async c => {
   return c.json(snapshot())
 })
 
-/** Skip, or the song ended in some tab. Only the first caller's id still matches. */
 app.post('/api/next', async c => {
   const body = IdBody.safeParse(await c.req.json().catch(() => null))
   if (!body.success) return c.json({ error: 'bad request' }, 400)
@@ -132,14 +125,11 @@ const AUDIO_EXT: Record<string, string> = {
 const MAX_UPLOAD = 25 * 1024 * 1024
 const MAX_TRACKS = 60
 
-/* Anyone holding the URL can add music, so everything user-supplied is capped and rerouted.
-   bodyLimit rejects on content-length first, before the body is buffered in memory at all. */
 app.use(
   '/api/library',
   bodyLimit({ maxSize: MAX_UPLOAD, onError: c => c.json({ error: 'that file is over 25 MB' }, 413) }),
 )
 
-/** Upload a file off a phone. Anyone with the URL can do this — hence the caps. */
 app.post('/api/library', async c => {
   const body = await c.req.parseBody()
   const file = body.file
@@ -166,7 +156,6 @@ app.post('/api/library', async c => {
 
 const LinkBody = z.object({ url: z.string().max(2048) })
 
-/** A pasted link becomes a real, cached track — YouTube/Spotify links are rejected with a reason. */
 app.post('/api/library/link', async c => {
   const body = LinkBody.safeParse(await c.req.json().catch(() => null))
   if (!body.success) return c.json({ error: 'send { url }' }, 400)
@@ -182,11 +171,6 @@ app.post('/api/library/link', async c => {
 
 const Lookup = z.object({ value: z.string().trim().min(2).max(2048) })
 
-/**
- * One entry point for "here is a song". A name searches the playable catalogue; a YouTube or
- * Spotify link is read for its title and searched for by that instead, because the link itself
- * cannot be played here. Nothing in this route queues anything — the results are for tapping.
- */
 app.post('/api/inspect', async c => {
   const body = Lookup.safeParse(await c.req.json().catch(() => null))
   if (!body.success) return c.json({ error: 'type a song or paste a link' }, 400)
