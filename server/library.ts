@@ -1,11 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import type { Track } from '../shared/types.ts'
 
-/*
- * Public-domain 1920s 78s, from the Library of Congress "National Jukebox"
- * collection on archive.org (CC Public Domain Mark 1.0). Re-encoded to mono 96k,
- * with the record label scan as artwork.
- */
 const A = (id: string) => `/tracks/art/${id}.jpg`
 const SEED: Track[] = [
   { id: 'that-da-da-strain', title: 'That Da-Da Strain', artist: 'The Virginians (Ross Gorman)', year: 1922, src: '/tracks/that-da-da-strain.mp3', art: A('that-da-da-strain') },
@@ -18,7 +13,6 @@ const SEED: Track[] = [
 
 const FILE = 'data/library.json'
 
-/** Whatever was added to the saloon's library last night, or the seed on a fresh box. */
 export const library: Track[] = (() => {
   try {
     return JSON.parse(readFileSync(FILE, 'utf8')) as Track[]
