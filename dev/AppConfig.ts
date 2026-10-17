@@ -114,3 +114,41 @@ export function GetJwtSecret(): string {
         'App secret not initialized. Call InitializeAppConfig() first.'
       );
     }
+    cachedEncryptionKey = DeriveKey(appSecret, HKDF_ENCRYPTION_INFO, 32);
+  }
+  return cachedEncryptionKey;
+}
+
+export async function InitializeAppConfig(db: {
+  Get: <T>(collection: string, id: string) => Promise<T | null>;
+  Set: <T>(
+    collection: string,
+    id: string,
+    doc: Partial<T>
+  ) => Promise<T | null>;
+}): Promise<AppConfig> {
+  const currentConfig = GetAppConfig();
+
+  if (currentConfig.appSecret) {
+    return currentConfig;
+  }
+
+  let secrets = await db.Get<AppSecrets>(SECRETS_COLLECTION, SECRETS_ID);
+
+  if (!secrets) {
+    secrets = {
+      id: SECRETS_ID,
+      object: 'app_secrets',
+      app_secret: GenerateSecureHex(64),
+      created: Math.floor(Date.now() / 1000),
+    };
+    await db.Set<AppSecrets>(SECRETS_COLLECTION, SECRETS_ID, secrets);
+  }
+
+  currentConfig.appSecret = secrets.app_secret;
+  return currentConfig;
+}
+
+export function IsAppConfigInitialized(): boolean {
+  return config !== null && !!config.appSecret;
+}
