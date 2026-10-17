@@ -88,3 +88,40 @@ export class Database {
       .exec();
     return result ? this.StripMongoFields(result as T) : null;
   }
+
+  async Increment(
+    collection: string,
+    documentId: string,
+    field: string,
+    amount = 1,
+    setOnInsert?: Record<string, unknown>
+  ): Promise<void> {
+    const model = this.GetModel(collection);
+    const update: Record<string, unknown> = { $inc: { [field]: amount } };
+    if (setOnInsert) {
+      update.$setOnInsert = setOnInsert;
+    }
+    await model.updateOne({ id: documentId }, update, { upsert: true }).exec();
+  }
+
+  async GetAll<T>(collection: string): Promise<T[]> {
+    const model = this.GetModel(collection);
+    const results = await model.find().lean().exec();
+    return results.map((doc) => this.StripMongoFields(doc as T));
+  }
+
+  /**
+   * Find documents where a filed equals a value
+   */
+  async Find<T>(
+    collection: string,
+    field: string,
+    value: unknown,
+    session?: ClientSession
+  ): Promise<T[]> {
+    const model = this.GetModel(collection);
+    const query = model.find({ [field]: value });
+    if (session) query.session(session);
+    const results = await query.lean().exec();
+    return results.map((doc) => this.StripMongoFields(doc as T));
+  }
