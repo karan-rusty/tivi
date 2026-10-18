@@ -18,3 +18,24 @@ html {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+.gutter,
+.standalone-label {
+  display: none;
+}
+.top-row,
+.inline-fader {
+  display: flex;
+}
+@media (min-width: 1024px) and (min-height: 640px) {
+  .gutter {
+    display: flex;
+  }
+  .standalone-label {
+    display: block;
+  }
+  .top-row,
+  .inline-fader {
+    display: none;
+  }
+}
