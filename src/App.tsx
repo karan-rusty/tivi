@@ -273,7 +273,7 @@ export default function App() {
             >
               <SkipForward size={16} />
             </button>
-            <span className="tabular ml-auto text-[11px] text-neutral-600" title="output sample rate">
+            <span className="tabular ml-auto hidden text-[11px] text-neutral-600 sm:inline" title="output sample rate">
               {spectrum.sampleRate() ? `SR ${(spectrum.sampleRate() / 1000).toFixed(1)}kHz` : 'SR --'}
             </span>
             <div className="flex items-center gap-2 lg:hidden">
