@@ -395,31 +395,6 @@ export default function App() {
           {busy && <p className="mb-2 text-xs text-accent">{busy}</p>}
           {note && <p className="mb-2 text-xs text-red-400">{note}</p>}
           {flash && <p className="mb-2 text-xs text-accent">{flash}</p>}
-          {found.length > 0 && (
-            <ul className="mb-2 overflow-hidden rounded-lg bg-white/5">
-              {found.map(hit => (
-                <li key={hit.url}>
-                  <button
-                    type="button"
-                    onClick={() => void addLink(hit.url)}
-                    className="flex w-full items-baseline gap-2 px-2 py-1.5 text-left text-xs hover:bg-white/10"
-                  >
-                    <span className="w-3 shrink-0 text-accent">+</span>
-                    <span className="min-w-0 flex-1 truncate text-neutral-200">{hit.title}</span>
-                    <span className="max-w-32 truncate text-neutral-500">{hit.artist}</span>
-                    <span className="tabular shrink-0 text-neutral-600">{hit.year || ''}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {asked && !busy && found.length === 0 && (
-            <p className="mb-2 text-xs text-neutral-500">
-              nothing playable for “{asked}”
-              {readLink
-                ? ` — that link is “${readLink.title}”, and links from YouTube or Spotify cannot be streamed here. Only public-domain recordings can, so try the artist instead.`
-                : ' — try fewer words, or the artist.'}
-            </p>
           )}
           <ul className="min-h-0 flex-1 overflow-y-auto">
             {library.map(t => (
