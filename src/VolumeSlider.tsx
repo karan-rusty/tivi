@@ -115,6 +115,14 @@ export function VolumeSlider({
       {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
     </button>
   )
+
+  const readout = (
+    <span
+      className={`tabular w-10 shrink-0 text-[11px] tracking-[0.15em] ${muted ? 'text-neutral-600' : 'text-accent'}`}
+    >
+      {muted ? 'MUTE' : `${String(pct).padStart(3, '0')}%`}
+    </span>
+  )
   return (
     <div className="flex shrink-0 select-none flex-col items-center gap-2">
       <div className="flex h-48 items-stretch gap-2">
