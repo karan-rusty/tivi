@@ -98,18 +98,18 @@ Right is everything you touch: the add-music box, the line, the library.
   from `JOIN_URL` with a minute of cache, so a restart cannot pin a stale address in a browser.
 - Under 680px the layout stacks: sleeve, line, library. Under 600px of height the spectrum hides.
 
-## Not built
-
-Search, a proper request line (a YouTube link shows as a request instead of an error), and
-vote-to-skip were all considered and left out to keep this small. The library is one array
-in `server/library.ts`, so any of them is additive.
-
 ## Layout
 
 ```
 shared/     types shared by both sides
 server/     Hono app: library + queue state, SSE stream, archive.org resolver, static hosting
-src/        React UI: App.tsx, Artwork.tsx (sleeve + colour ASCII), Logo.tsx (the wordmark), useArtworkTheme.ts, useJukebox.ts
-public/     the six built-in audio files and their label scans (built into dist/)
+src/        React UI: App.tsx, Artwork.tsx (sleeve + colour ASCII), Logo.tsx, useArtworkTheme.ts, useJukebox.ts
+public/     favicon (built into dist/)
 data/       runtime library: library.json + every uploaded or fetched track and cover (gitignored)
 ```
+
+## Not built
+
+A proper request line (a YouTube link ends in an error instead of becoming a request), vote-to-skip,
+and a search over the library itself. The library is one array in `server/library.ts`, so any of
+them is additive.
