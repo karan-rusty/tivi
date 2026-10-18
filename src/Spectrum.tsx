@@ -47,9 +47,11 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
     let bins = new Uint8Array(1024)
     let bars = 0
     let ofBar = new Uint8Array(0)
+    let counts = new Float32Array(0)
     let levels = new Float32Array(0)
+    let shown = new Float32Array(0)
     let peaks = new Float32Array(0)
-    let history = new Float32Array(0)
+    let ceiling = 0.2
 
     // Columns depend on width and the FFT depends on the analyser, so this is rebuilt whenever
     // either changes — including the first frame after the gesture brings the analyser up.
@@ -58,14 +60,16 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
       if (next === bars && ofBar.length === bins.length) return
       bars = next
       levels = new Float32Array(bars)
+      shown = new Float32Array(bars)
       peaks = new Float32Array(bars)
-      history = new Float32Array(bars)
+      counts = new Float32Array(bars)
       ofBar = new Uint8Array(bins.length)
       const rate = node?.context.sampleRate ?? 44100
       const binHz = rate / (node?.fftSize ?? 2048)
       for (let i = 0; i < ofBar.length; i++) {
         const t = Math.log(Math.max(i * binHz, LOW_HZ) / LOW_HZ) / Math.log(HIGH_HZ / LOW_HZ)
         ofBar[i] = Math.min(bars - 1, Math.max(0, Math.floor(t * bars)))
+        counts[ofBar[i]]++
       }
     }
 
@@ -92,16 +96,23 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
       levels.fill(0)
       let loudest = 0
       for (let i = 0; i < bins.length; i++) {
-        const value = (db(bins[i]) + 60) / 60 // -60 dB is the floor
-        const bar = ofBar[i]
-        if (value > levels[bar]) levels[bar] = value
+        const value = Math.max(0, (db(bins[i]) + 60) / 60) // -60 dB is the floor
+        levels[ofBar[i]] += value
         if (value > loudest) loudest = value
       }
+      // A band is the mean of its bins, not the loudest of them: the single loudest bin is what
+      // makes a spectrum twitch, and a band covers many bins once it is past the low end.
+      let peak = 0
+      for (let b = 0; b < bars; b++) {
+        levels[b] = counts[b] ? levels[b] / counts[b] : 0
+        if (levels[b] > peak) peak = levels[b]
+      }
 
-      // Each column is scaled by its own recent peak rather than one global gain. A 1922 acoustic
-      // 78 sits between 200Hz and 1.5kHz, so on a fixed scale four fifths of the width does
-      // nothing and the rest barely lifts; this makes the whole bar work, and the floor stops
-      // noise from amplifying itself when the room is quiet.
+      // One scale for the whole strip, lifted quickly and let down slowly. Scaling every column by
+      // its own peak turns a spectrum into 148 automatic gain controls fighting each other — the
+      // loudest part of the noise floor sits as high as the bass — and that reads as random spikes.
+      // Sharing the scale keeps the shape of the record, which is what a spectrum is for.
+      ceiling = Math.max(peak, ceiling * 0.9985, 0.2)
       const silent = loudest < 0.06
 
       if (frame % 24 === 0) colour = accentColour()
@@ -110,8 +121,11 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
       ctx.fillStyle = colour
 
       for (let b = 0; b < bars; b++) {
-        history[b] = Math.max(levels[b], history[b] * 0.97, 0.16)
-        const level = silent ? 0 : Math.min(1, Math.pow(levels[b] / history[b], 0.8))
+        const want = silent ? 0 : Math.min(1, Math.pow(levels[b] / ceiling, 0.8))
+        // cava's gravity: a column snaps up and eases down, so the strip moves like a meter
+        // instead of flickering with every transient.
+        shown[b] += (want - shown[b]) * (want > shown[b] ? 0.45 : 0.12)
+        const level = shown[b]
         peaks[b] = Math.max(level, peaks[b] - DECAY)
         const x = b * PITCH
         const up = Math.round(level * top)
