@@ -471,9 +471,16 @@ export default function App() {
               onClick={e => e.stopPropagation()}
               className="relative flex max-h-full flex-col items-center gap-3 overflow-y-auto rounded-2xl border border-white/10 bg-neutral-900/95 p-5"
             >
-              <X size={15} />
-            </button>
-            {/* The card is the light field, so it takes the record's accent; the modules stay
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setJoining(false)}
+                aria-label="Close"
+                className="absolute right-3 top-3 rounded-md p-1 text-neutral-500 hover:bg-white/5 hover:text-accent"
+              >
+                <X size={15} />
+              </button>
+              {/* The card is the light field, so it takes the record's accent; the modules stay
                 black, because that is the part a scanner reads. */}
             <img
               src="/qr.svg"
