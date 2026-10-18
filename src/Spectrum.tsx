@@ -79,6 +79,9 @@ export function Spectrum({ analyser, online }: { analyser: React.RefObject<Analy
       }
       const w = el.clientWidth
       const h = el.clientHeight
+      // The backing store is dpr-scaled: without this the meter only covers 1/dpr of its own width.
+      const dpr = el.width / Math.max(1, w)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       remap(w)
       const rows = Math.max(4, Math.floor(h / PITCH))
       const top = Math.round(rows * TOP_SHARE)
