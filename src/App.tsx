@@ -395,8 +395,26 @@ export default function App() {
           {busy && <p className="mb-2 text-xs text-accent">{busy}</p>}
           {note && <p className="mb-2 text-xs text-red-400">{note}</p>}
           {flash && <p className="mb-2 text-xs text-accent">{flash}</p>}
-          )}
-          <ul className="min-h-0 flex-1 overflow-y-auto">
+          {
+            found.length > 0 && (
+              <ul className="scroll-thin mb-2 max-h-56 overflow-y-auto rounded-lg bg-white/5">
+                {found.map(hit => (
+                  <li key={hit.url}>
+                    <button
+                      type="button"
+                      onClick={() => void addLink(hit.url)}
+                      className="flex w-full items-baseline gap-2 px-2 py-1.5 text-left text-xs hover:bg-white/10"
+                    >
+                      <span className="w-3 shrink-0 text-accent">+</span>
+                      <span className="min-w-0 flex-1 truncate text-neutral-200">{hit.title}</span>
+                      <span className="max-w-32 truncate text-neutral-500">{hit.artist}</span>
+                      <span className="tabular shrink-0 text-neutral-600">{hit.year || ''}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
             {library.map(t => (
               <li key={t.id} className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-white/5">
                 <div className="min-w-0 flex-1">
