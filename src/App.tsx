@@ -444,16 +444,18 @@ export default function App() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[11px] text-neutral-500">
-            <span className="text-neutral-600">[space]</span> play/pause ◆ <span className="text-neutral-600">[n]</span>{' '}
-            skip ◆ <span className="text-neutral-600">[m]</span> mute ◆ <span className="text-neutral-600">[a]</span>{' '}
-            link ◆ <span className="text-neutral-600">[u]</span> upload
-          </p>
-          <p className="mt-1 text-[11px] text-neutral-700">
-            volume is per device — turn it up on the machine wired to the speakers
-          </p>
-        </section>
-      </main>
+          <div className='hide-tiny mt-3 text-[11px] text-neutral-500'>
+            <p>
+              <span className="text-neutral-600">[space]</span> play/pause ◆{' '}
+              <span className='text-neutral-600'>[n]</span> skip ◆ <span className='text-neutral-600'>[m]</span> mute ◆{' '}
+              <span className='text-neutral-600'>[a]</span> link ◆ <span className='text-neutral-600'>[u]</span> upload
+            </p>
+            <p className='mt-1 text-neutral-700'>
+              volume is per device - turn it up on the machine wired to the speakers
+            </p>
+          </div>
+        </section >
+      </main >
 
       {/* Hidden until asked for: the QR is for the room, not for whoever is reading the panel. */}
       {joining && state && (
