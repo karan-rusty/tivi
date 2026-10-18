@@ -11,19 +11,22 @@ export function VolumeSlider({
   onToggleMute,
   level,
   armed,
+  orientation = 'vertical',
+  className = '',
 }: {
   value: number
   muted: boolean
   onChange: (value: number) => void
   onToggleMute: () => void
-  /** Mean energy of what is coming out, 0..1. */
   level: () => number
-  /** False until the first gesture has armed the analyser; the ladder rests until then. */
   armed: boolean
+  orientation?: 'vertical' | 'horizontal'
+  className?: string
 }) {
   const rail = useRef<HTMLDivElement>(null)
   const segments = useRef<(HTMLSpanElement | null)[]>([])
   const pct = Math.round(value * 100)
+  const horizontal = orientation === 'horizontal'
 
   // The segments are a level meter, not a volume scale — the handle and the readout show the
   // setting, the ladder dances to the song. Written straight to the DOM: 24 nodes at 30fps
