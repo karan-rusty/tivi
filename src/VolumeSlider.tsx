@@ -166,21 +166,7 @@ export function VolumeSlider({
         </div>
         <div
           ref={rail}
-          onKeyDown={e => {
-            const step =
-              e.key === 'ArrowUp' || e.key === 'ArrowRight' ? 0.05
-              : e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -0.05
-              : e.key === 'PageUp' ? 0.1
-              : e.key === 'PageDown' ? -0.1
-              : 0
-            if (step) {
-              e.preventDefault()
-              nudge(step)
-            } else if (e.key === 'Home' || e.key === 'End') {
-              e.preventDefault()
-              onChange(e.key === 'Home' ? 0 : 1)
-            }
-          }}
+          {...sliderProps}
           className="relative w-9 cursor-ns-resize touch-none rounded-full border border-white/10 bg-black/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.85)] outline-none focus-visible:ring-1 focus-visible:ring-accent"
         >
           <span className="absolute bottom-2 left-1/2 top-2 w-px -translate-x-1/2 bg-white/10" />
