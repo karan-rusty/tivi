@@ -28,9 +28,6 @@ export function VolumeSlider({
   const pct = Math.round(value * 100)
   const horizontal = orientation === 'horizontal'
 
-  // The segments are a level meter, not a volume scale — the handle and the readout show the
-  // setting, the ladder dances to the song. Written straight to the DOM: 24 nodes at 30fps
-  // through React state would re-render the whole panel for a decoration.
   useEffect(() => {
     if (!armed) return
     let raf = 0
