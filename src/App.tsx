@@ -505,6 +505,6 @@ export default function App() {
         onCanPlay={sync}
         onEnded={() => playing && void skip(playing.id)}
       />
-    </div>
+    </div >
   )
 }
