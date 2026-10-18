@@ -1,5 +1,7 @@
 # tivi
 
+![tivi with a record playing](screenshot.png)
+
 A jukebox for one room. Anybody can queue a song from their phone, and the browser plugged into the
 speakers plays it. The library starts empty and the room fills it.
 
