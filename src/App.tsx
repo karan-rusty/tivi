@@ -336,7 +336,7 @@ export default function App() {
         </section>
 
         <section className="flex min-h-0 flex-col">
-          <div className="mb-1 flex items-center justify-between gap-3">
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <h3 className="text-sm font-medium text-neutral-400">Library</h3>
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2 text-xs text-neutral-500">
