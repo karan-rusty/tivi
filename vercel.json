@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "http://bore.pub:24124/api/:path*" },
+    { "source": "/media/:path*", "destination": "http://bore.pub:24124/media/:path*" },
+    { "source": "/qr.svg", "destination": "http://bore.pub:24124/qr.svg" }
+  ]
+}
