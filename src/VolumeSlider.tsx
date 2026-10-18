@@ -85,6 +85,25 @@ export function VolumeSlider({
       onChange(e.key === 'Home' ? 0 : 1)
     }
   }
+
+  const sliderProps = {
+    role: 'slider' as const,
+    tabIndex: 0,
+    'aria-label': 'Volume',
+    'aria-orientation': horizontal ? ('horizontal' as const) : ('vertical' as const),
+    'aria-valuemin': 0,
+    'aria-valuemax': 100,
+    'aria-valuenow': pct,
+    'aria-valuetext': muted ? 'muted' : `${pct}%`,
+    onKeyDown,
+    onPointerDown: (e: React.PointerEvent) => {
+      e.currentTarget.setPointerCapture(e.pointerId)
+      setFromPointer(horizontal ? e.clientX : e.clientY)
+    },
+    onPointerMove: (e: React.PointerEvent) => {
+      if (e.buttons === 1) setFromPointer(horizontal ? e.clientX : e.clientY)
+    },
+  }
   return (
     <div className="flex shrink-0 select-none flex-col items-center gap-2">
       <div className="flex h-48 items-stretch gap-2">
