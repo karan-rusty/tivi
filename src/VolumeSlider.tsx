@@ -104,6 +104,17 @@ export function VolumeSlider({
       if (e.buttons === 1) setFromPointer(horizontal ? e.clientX : e.clientY)
     },
   }
+
+  const muteButton = (
+    <button
+      type="button"
+      onClick={onToggleMute}
+      aria-label={muted ? 'Unmute' : 'Mute'}
+      className='shrink-0 rounded-lg border border-white/10 p-2 text-neutral-400 hover:bg-white/5 hover:text-accent'
+    >
+      {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+    </button>
+  )
   return (
     <div className="flex shrink-0 select-none flex-col items-center gap-2">
       <div className="flex h-48 items-stretch gap-2">
