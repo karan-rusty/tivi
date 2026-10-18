@@ -359,7 +359,7 @@ export default function App() {
                 <QrCode size={13} /> Join
               </button>
             </div>
-          </div>
+          </div >
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/20">
               <Upload size={13} /> Add from this device
