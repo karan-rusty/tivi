@@ -276,6 +276,24 @@ export default function App() {
             <span className="tabular ml-auto hidden text-[11px] text-neutral-600 sm:inline" title="output sample rate">
               {spectrum.sampleRate() ? `SR ${(spectrum.sampleRate() / 1000).toFixed(1)}kHz` : 'SR --'}
             </span>
+            <VolumeSlider
+              orientation="horizontal"
+              className="inline-fader"
+              value={volume}
+              muted={muted}
+              level={spectrum.level}
+              armed={spectrum.online}
+              onChange={next => {
+                setVolume(next)
+                localStorage.setItem('tivi.volume', String(next))
+              }}
+              onToggleMute={() => {
+                const next = !muted
+                setMuted(next)
+                localStorage.setItem('tivi.muted', next ? 'yes' : 'no')
+              }}
+            />
+          </div>
           </div>
           <Spectrum analyser={spectrum.analyser} online={spectrum.online} />
         </section>
