@@ -1,7 +1,7 @@
 # tivi
 
-A jukebox for one room: anybody queues from their phone, the browser wired to the speakers plays.
-The library starts empty and the room fills it.
+A jukebox for one room. Anybody can queue a song from their phone, and the browser plugged into the
+speakers plays it. The library starts empty and the room fills it.
 
 ## Run it
 
@@ -12,15 +12,16 @@ bun run build        # tsc + vite -> dist/
 bun start            # http://localhost:8787, one process for UI + API + audio
 ```
 
-`PORT` moves the server. `JOIN_URL` is what the QR hands out, and defaults to the machine's LAN IPv4.
+`PORT` moves the server off 8787. `JOIN_URL` is the address the QR hands out, and defaults to the
+machine's LAN IPv4.
 
 ## Deploying
 
-UI on Vercel, API on a box, one origin for the browser: `vercel.json` rewrites `/api/*`, `/media/*`
-and `/qr.svg` to the box, so the client keeps relative paths and there is no CORS layer. On the box,
-`tivi.service` runs the server on :8787 and `tivi-tunnel.service` carries that port out through a
-bore tunnel, which is why the port appears in two files. One Node host needs none of it:
-`bun run build && bun start`.
+The UI runs on Vercel and the API on a box, with the browser seeing one origin. `vercel.json`
+rewrites `/api/*`, `/media/*` and `/qr.svg` to the box, so the client keeps relative paths and there
+is no CORS layer. On the box, `tivi.service` runs the server on :8787 and `tivi-tunnel.service`
+carries that port out through a bore tunnel. The port number sits in both files, so change them
+together. A single host that runs Node needs none of this: `bun run build && bun start`.
 
 ## How it plays
 
@@ -37,14 +38,14 @@ sequenceDiagram
     P->>S: POST /api/next {id} when the song ends
 ```
 
-- State lives in memory in `server/index.ts` and reaches every screen as a snapshot over SSE
-  (`GET /api/events`), with `GET /api/state` for a one-shot read.
-- `playing.startedAt` is the only clock: position is `(pausedAt ?? now) - startedAt`, pause shifts
-  the start, and `now` in every snapshot cancels each client's drift, so a tab that opens mid-song
-  seeks to the right second.
-- `POST /api/queue`, `/api/next`, `/api/pause` and `DELETE /api/queue/:id` mutate it. `next` carries
-  the id the caller thinks is playing, so six open tabs do not skip six songs.
-- Volume and mute are per device; the queue and pause are shared.
+- `server/index.ts` holds the state in memory and sends a snapshot to every screen over SSE at
+  `GET /api/events`. `GET /api/state` is the one-shot read.
+- `playing.startedAt` is the only clock. Position is `(pausedAt ?? now) - startedAt`, so pause just
+  shifts the start, and `now` in every snapshot cancels each client's drift. A tab that opens
+  mid-song seeks to the right second.
+- The mutations are `POST /api/queue`, `/api/next`, `/api/pause` and `DELETE /api/queue/:id`. `next`
+  carries the id the caller thinks is playing, so six open tabs do not skip six songs.
+- Volume and mute are per device. The queue and pause are shared.
 
 ## Adding music
 
@@ -53,17 +54,19 @@ Everything ends as a local file in `data/media/`.
 - A song name searches archive.org scoped to `collection:78rpm`.
 - An archive.org link resolves straight away: largest mp3, label scan as the sleeve.
 - A YouTube or Spotify link is read for its title through oEmbed, then searched by that title.
-- An upload takes mp3, ogg, wav, flac, m4a or aac up to 25 MB, 60 tracks per library, and gets its
-  sleeve from the iTunes catalogue, with a JP pass for titles that are not romanised.
+- An upload takes mp3, ogg, wav, flac, m4a or aac up to 25 MB, and the library holds 60 tracks. The
+  sleeve comes from the iTunes catalogue, with a second pass against the JP store for titles that
+  are not romanised.
 
 ## The screen
 
-- `useArtworkTheme` takes a vibrant swatch from the cover and sets `--accent` and `--tint`, so the
-  wordmark, progress bar and QR card wear the record's colour. Tapping the sleeve shows it as colour
-  ASCII.
-- The spectrum is a cava-style dot graph, 40Hz to 16kHz, drawn from this device's own output: the
-  mean of each band's FFT bins, one shared falling ceiling, columns that snap up and ease down.
-- The QR is SVG drawn server-side from `JOIN_URL`, with a minute of cache.
+- `useArtworkTheme` asks node-vibrant for the cover's vibrant swatch and sets `--accent` and
+  `--tint`, so the wordmark, progress bar and QR card take the record's colour. Tapping the sleeve
+  shows it as colour ASCII.
+- The spectrum is a cava-style dot graph from 40Hz to 16kHz, drawn from this device's own output.
+  Each band is the mean of its FFT bins, all bands share one slowly falling ceiling, and a column
+  snaps up and eases down.
+- The QR is SVG drawn server-side from `JOIN_URL`, cached for a minute.
 
 ## Layout
 
@@ -74,5 +77,5 @@ src/        React UI
 data/       library.json + every uploaded or fetched track and cover (gitignored)
 ```
 
-A YouTube link ends in an error instead of becoming a request, vote-to-skip is missing, and the
-library is one array in `server/library.ts`, so either is additive.
+There is no request line: a YouTube link that matches nothing in the 78s says so. Vote-to-skip is
+missing too, and the library is one array in `server/library.ts`, so both are additive.
