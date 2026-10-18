@@ -82,39 +82,21 @@ is gone after a restart.
 
 ## The screen
 
-```
-┌───────┬──────────────────────────┬──────────────────┐
-│ tivi  │  the record, sleeve size │  Up next  (line) │
-│       │  (or its colour-ASCII)   │  Library         │
-│ ▮▮▮▮  │                          │  ┌─────────────┐ │
-│ ▮▮▮▮  │  title · artist · year   │  │ add a song  │ │
-│  ▌    │  ────── progress ──────  │  └─────────────┘ │
-│ 075%  │  ⏸ ⏭                    │  [Add] per song  │
-│  🔈   │                          │                  │
-└───────┴──────────────────────────┴──────────────────┘
-```
+Left is the sleeve at real 12-inch size, with the name and the volume ladder under it. The name is
+struck twice, white and then the record's accent stepped down and right like misregistered ink.
+Right is everything you touch: the add-music box, the line, the library.
 
-- **Left: the sleeve**, with the name and the volume panel under it. The name runs up the gutter in
-  the control-panel face, struck twice — a white pass and a second in the record's accent, stepped
-  down and right like misregistered ink. No glow: the accent is pigment here, not a light source.
-  A hairline and a 9px `78 rpm` spec sit beside it. The volume is a segmented ladder beside a pill
-  track, drag it anywhere along its length or use the arrow keys. Both live in the record's own
-  band rather than in the full-height left column, and the record is centred in that band, so the
-  sign and the fader line up with the sleeve instead of with the middle of the page — at 1440×900,
-  1440×1200, 1280×800 and 1152×780 their centre sits on the sleeve's centre to the pixel. The
-  *Join* button sits in the Library header: it opens the QR over everything, with the address
-  printed under it, and closes on Escape, on the X, or on a click outside. It is the only thing on
-  screen asking to be scanned, so it stays out of the way until somebody wants it.
-- **Right: everything you touch.** Add-music controls, the line, and the library.
-- **The theme comes from the record.** `useArtworkTheme` runs node-vibrant over the cover and sets
-  `--accent` / `--tint` on the document, so the wordmark's second pass, the progress bar, buttons
-  and page glow all take the record's own colour. It takes a *vibrant* swatch rather than an
-  average: a label scan is mostly paper and black shellac, and averaging those gives grey. The QR
-  card rides the same variable, so it changes with the song — the six records land at 12.7–15.8:1
-  against the black modules, and even a pure-black accent (which the theme lifts toward white)
-  leaves 5.3:1, well past what a scanner needs. The modules themselves stay black: that is the part
-  the camera reads.
-- On a phone it stacks: sleeve, then line, then library.
+- `useArtworkTheme` runs node-vibrant over the cover and sets `--accent` and `--tint` on the
+  document, so the wordmark, the progress bar and the QR card take the record's colour. It picks a
+  vibrant swatch, since averaging paper and black shellac gives grey, and lifts a dark one toward
+  white so the QR modules keep their contrast. Tapping the sleeve renders the cover as colour ASCII,
+  one character per pixel block.
+- The spectrum is a cava-style dot graph over 40Hz to 16kHz on a log scale, drawn from this device's
+  own output through a Web Audio analyser. Each band is the mean of its FFT bins, every band shares
+  one slowly falling ceiling, and each column snaps up and eases down.
+- The Join button in the Library header opens the QR over everything. The server draws it as SVG
+  from `JOIN_URL` with a minute of cache, so a restart cannot pin a stale address in a browser.
+- Under 680px the layout stacks: sleeve, line, library. Under 600px of height the spectrum hides.
 
 ## Not built
 
