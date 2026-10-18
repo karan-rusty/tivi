@@ -107,7 +107,7 @@ export default function App() {
     }
     if (playing.pausedAt !== null) return el.pause()
     // Before this device's first gesture the browser refuses and this rejects — the next one retries.
-    if (el.paused) void el.play().catch(() => {})
+    if (el.paused) void el.play().catch(() => { })
   }
 
   useEffect(sync) // runs after every render: the server state is the only source of truth
