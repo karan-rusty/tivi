@@ -1,11 +1,7 @@
 # tivi
 
-A jukebox for one room. Anybody queues a tune from their phone; the browser plugged into the
-speakers plays it. No app, no accounts, one URL.
-
-The library starts empty and the saloon fills it: upload a file off a phone, paste an archive.org
-link, or type a song name and pick from the public-domain 78s. Every screen sees the same queue and
-the same second of the same song.
+A jukebox for one room: anybody queues from their phone, the browser wired to the speakers plays.
+The library starts empty and the room fills it.
 
 ## Run it
 
@@ -16,24 +12,15 @@ bun run build        # tsc + vite -> dist/
 bun start            # http://localhost:8787, one process for UI + API + audio
 ```
 
-- `PORT` moves the server off 8787.
-- `JOIN_URL` is the address the QR and the join card hand out. Left alone it uses the machine's LAN
-  IPv4, which is the address a phone can actually reach.
+`PORT` moves the server. `JOIN_URL` is what the QR hands out, and defaults to the machine's LAN IPv4.
 
 ## Deploying
 
-The live setup is split: UI on Vercel, API on a box, one origin from the browser's point of view.
-
-- `vercel.json` rewrites `/api/*`, `/media/*` and `/qr.svg` to the box, so the client keeps relative
-  paths and there is no CORS layer or API base URL to configure. Change the tunnel port in that file
-  and in the tunnel unit together, then rebuild the frontend.
-- On the box, `tivi.service` runs the server on :8787 with `JOIN_URL` pointing at the public URL,
-  and `tivi-tunnel.service` carries that port out through a bore tunnel.
-- One process is one room. The queue lives in memory, so a restart empties the line. The library
-  does not: it is a JSON file next to the audio.
-
-A single host that runs Node needs none of this. `bun run build && bun start` serves the UI, the API
-and the audio from one port.
+UI on Vercel, API on a box, one origin for the browser: `vercel.json` rewrites `/api/*`, `/media/*`
+and `/qr.svg` to the box, so the client keeps relative paths and there is no CORS layer. On the box,
+`tivi.service` runs the server on :8787 and `tivi-tunnel.service` carries that port out through a
+bore tunnel, which is why the port appears in two files. One Node host needs none of it:
+`bun run build && bun start`.
 
 ## How it plays
 
@@ -50,16 +37,14 @@ sequenceDiagram
     P->>S: POST /api/next {id} when the song ends
 ```
 
-- `server/index.ts` keeps `queue` and `playing` in memory and pushes a snapshot to every subscriber
-  over SSE at `GET /api/events`. `GET /api/state` is the one-shot read.
-- `playing.startedAt` is the only clock. Position is `(pausedAt ?? now) - startedAt`, so pause is a
-  timestamp shift and a tab that opens halfway through a song seeks to the right second instead of
-  restarting it. `now` travels in every snapshot so each client cancels out its own clock drift.
-- The mutations are `POST /api/queue`, `POST /api/next`, `POST /api/pause` and
-  `DELETE /api/queue/:id`. `next` carries the id of the song the caller believes is playing, so the
-  first tab to reach the end wins and six open tabs do not skip six songs.
-- Browsers refuse audio before a gesture, so the first click or key press in a tab arms sound there.
-  Volume and mute are per device (localStorage). The queue and pause are shared.
+- State lives in memory in `server/index.ts` and reaches every screen as a snapshot over SSE
+  (`GET /api/events`), with `GET /api/state` for a one-shot read.
+- `playing.startedAt` is the only clock: position is `(pausedAt ?? now) - startedAt`, pause shifts
+  the start, and `now` in every snapshot cancels each client's drift, so a tab that opens mid-song
+  seeks to the right second.
+- `POST /api/queue`, `/api/next`, `/api/pause` and `DELETE /api/queue/:id` mutate it. `next` carries
+  the id the caller thinks is playing, so six open tabs do not skip six songs.
+- Volume and mute are per device; the queue and pause are shared.
 
 ## Adding music
 
