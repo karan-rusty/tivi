@@ -61,6 +61,25 @@ sequenceDiagram
 - Browsers refuse audio before a gesture, so the first click or key press in a tab arms sound there.
   Volume and mute are per device (localStorage). The queue and pause are shared.
 
+## Adding music
+
+Four ways in, one pipeline: everything ends as a local file in `data/media/` and joins the library
+over the same SSE stream.
+
+- A song name searches archive.org scoped to `collection:78rpm`, so every row it offers can actually
+  be played here. Picking one downloads the recording.
+- An archive.org link skips the search. The resolver takes the largest mp3 in the item, caches it,
+  and caches the label scan as the sleeve.
+- A YouTube or Spotify link is read through its oEmbed endpoint for its title and then searched by
+  that title, because the link itself cannot be streamed here.
+- A file upload takes mp3, ogg, wav, flac, m4a or aac up to 25 MB, and the library holds 60 tracks.
+  An upload carries no picture of its own, so the sleeve is looked up in the iTunes catalogue by
+  title, with a second pass against the JP store for titles that are not romanised.
+
+archive.org answers in ten seconds one moment and not at all the next, so downloads are retried
+once and the panel says so while it works. `data/` is gitignored: on an ephemeral disk the library
+is gone after a restart.
+
 ## The screen
 
 ```
@@ -96,56 +115,6 @@ sequenceDiagram
   leaves 5.3:1, well past what a scanner needs. The modules themselves stay black: that is the part
   the camera reads.
 - On a phone it stacks: sleeve, then line, then library.
-
-## The tracks
-
-Public domain, from the Library of Congress *National Jukebox* collection on
-[archive.org](https://archive.org/details/78rpm), encoded to mono 96 kbps mp3.
-
-| Track | Artist | Year |
-| --- | --- | --- |
-| That Da-Da Strain | The Virginians (Ross Gorman) | 1922 |
-| Whoa, Tillie, Take Your Time | The Virginians (Ross Gorman) | 1923 |
-| Jim Jams | Roy Bargy | 1924 |
-| I'm Haunted by That Swanee River Song | Fred Waring's Pennsylvanians | 1924 |
-| Superstitious Blues | The Virginians (Ross Gorman) | 1924 |
-| Burning Sands | Yerkes Jazarimba Orchestra | 1922 |
-
-Swap in your own files by dropping them in `public/tracks/` and editing the seed in
-`server/library.ts`, or add them at runtime (below). Label scans live in `public/tracks/art/`;
-archive.org items get theirs cached automatically. An **uploaded** file has no artwork, so it plays
-with a stand-in sleeve and the default amber theme — the only place the "theme follows the record"
-promise cannot hold.
-
-## Adding music
-
-**One box takes whatever somebody has.** Type a song, a name, or a link; press Enter. Everything
-ends as a local cached file, so every listener still hears the same second as the built-in tracks.
-
-1. **A song name** — searches the public-domain 78s and shows up to eight tappable rows
-   (`Oil Well ◆ Jelly-Roll Morton ◆ 1950`). Tapping one caches that recording and puts it on the
-   line. The search is scoped to `collection:78rpm`, so *everything it offers can actually be
-   played here* — that is the whole point of taking a request by name.
-2. **An archive.org link** — exact, so it is added straight away rather than searched for.
-3. **A YouTube or Spotify link** — read for its title and then searched for *by that title*, since
-   the link itself cannot be streamed here. Paste a Rick Astley video and the panel says what it
-   read and that no 78 of it exists. Paste a 1930s jazz video and it usually finds the record.
-4. **A file** — pick an mp3/ogg/wav/flac/m4a off the device. Up to 25 MB, 60 tracks per library.
-
-When only a link is available, that is the honest limit: Spotify playback needs Premium on **every**
-listener (and its 30-second previews are gone for new apps), and YouTube's terms require its own
-visible player of at least 200×200px and forbid separating the audio. So a link-playback path means
-either a subscription per guest or a video watch party that breaks the shared clock. Reading a
-link's *title* and finding a public-domain pressing of the same song costs nothing and plays.
-
-What you add is queued immediately and shows up in everyone's library over the same SSE stream.
-Resolving an archive.org item takes 10–30 seconds — it is downloading a real recording — and the
-panel says so while it works. archive.org drops a request every so often, so downloads are retried
-once and failures say "give it another go" rather than pretending nothing happened.
-
-Uploads and downloads live in `data/`, which is gitignored: on a host with an ephemeral disk they
-are gone after a restart, so attach a volume if the library should survive the night.
-
 
 ## Not built
 
