@@ -209,10 +209,8 @@ export default function App() {
         }}
       />
       <main
-        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 p-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:p-4`}
+        className={`mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 p-3 split:min-h-0 split:flex-1 split:grid-cols-[minmax(0,1fr)_18rem] split:grid-rows-[auto_minmax(0,1fr)] split:gap-6 split:p-4 lg:grid-cols-[minmax(0,1fr)_22rem]`}
       >
-        <section className="flex min-h-0 flex-col gap-3 lg:row-span-2">
-          <div className="flex items-baseline justify-between lg:hidden">
             <Logo />
             <span className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</span>
           </div>
