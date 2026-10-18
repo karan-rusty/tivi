@@ -35,7 +35,7 @@ The live setup is split: UI on Vercel, API on a box, one origin from the browser
 A single host that runs Node needs none of this. `bun run build && bun start` serves the UI, the API
 and the audio from one port.
 
-## How it works
+## How it plays
 
 ```mermaid
 sequenceDiagram
@@ -50,18 +50,16 @@ sequenceDiagram
     P->>S: POST /api/next {id} when the song ends
 ```
 
-- `server/index.ts` keeps `queue` + `playing` in memory and pushes a snapshot to every
-  subscriber over SSE. Mutations: `POST /api/queue`, `POST /api/next`, `POST /api/pause`,
-  `DELETE /api/queue/:id`, plus `GET /api/state` for a one-shot read.
-- `playing.startedAt` is the only clock. Position = `(pausedAt ?? now) - startedAt`, which
-  makes pause a single timestamp shift and lets any tab that joins late seek to the right
-  spot. `now` rides along in every snapshot so clients can cancel out clock drift.
-- Every tab plays the same song. That is the point of a jukebox, and it is why the volume
-  control is local: turn it up on the machine wired to the speakers.
-- Browsers do not allow audio before a user gesture, so the first click or key press anywhere in a
-  tab starts sound on that device. There is no prompt for it; the page just takes the gesture.
-- `POST /api/next` carries the id of the song the caller thinks is playing. Whichever tab
-  reaches the end first wins; the others are ignored, so six tabs do not skip six songs.
+- `server/index.ts` keeps `queue` and `playing` in memory and pushes a snapshot to every subscriber
+  over SSE at `GET /api/events`. `GET /api/state` is the one-shot read.
+- `playing.startedAt` is the only clock. Position is `(pausedAt ?? now) - startedAt`, so pause is a
+  timestamp shift and a tab that opens halfway through a song seeks to the right second instead of
+  restarting it. `now` travels in every snapshot so each client cancels out its own clock drift.
+- The mutations are `POST /api/queue`, `POST /api/next`, `POST /api/pause` and
+  `DELETE /api/queue/:id`. `next` carries the id of the song the caller believes is playing, so the
+  first tab to reach the end wins and six open tabs do not skip six songs.
+- Browsers refuse audio before a gesture, so the first click or key press in a tab arms sound there.
+  Volume and mute are per device (localStorage). The queue and pause are shared.
 
 ## The screen
 
