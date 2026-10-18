@@ -450,9 +450,6 @@ export default function App() {
               <span className='text-neutral-600'>[n]</span> skip ◆ <span className='text-neutral-600'>[m]</span> mute ◆{' '}
               <span className='text-neutral-600'>[a]</span> link ◆ <span className='text-neutral-600'>[u]</span> upload
             </p>
-            <p className='mt-1 text-neutral-700'>
-              volume is per device - turn it up on the machine wired to the speakers
-            </p>
           </div>
         </section >
       </main >
