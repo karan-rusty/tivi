@@ -305,7 +305,7 @@ export default function App() {
             {state && <span className="text-xs font-normal text-neutral-600">{state.queue.length} in line</span>}
           </h3>
           {state?.queue.length ? (
-            <ul className="min-h-0 flex-1 overflow-y-auto">
+            <ul className="scroll-thin min-h-0 flex-1 overflow-y-auto split:max-h-[32vh]">
               {state.queue.map((item, i) => {
                 const t = library.find(x => x.id === item.trackId)
                 return (
