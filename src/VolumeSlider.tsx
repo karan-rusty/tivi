@@ -4,10 +4,6 @@ import { Volume2, VolumeX } from 'lucide-react'
 const SEGMENTS = 24
 const HANDLE = 16
 
-/**
- * Volume as a segmented ladder beside a pill track, in the style of a receiver's LED meter.
- * The lit bars take the current record's colour because they use --accent.
- */
 export function VolumeSlider({
   value,
   muted,
