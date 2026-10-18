@@ -236,7 +236,7 @@ export default function App() {
                 }}
               />
             </div>
-            <div className="flex min-h-0 flex-1 items-center justify-center lg:[container-type:size]">
+            <div className="flex min-h-0 flex-1 items-center justify-center split:[container-type:size]">
               <Artwork track={track} />
             </div>
           </div>
