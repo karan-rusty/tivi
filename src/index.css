@@ -3,12 +3,11 @@
 @import "@fontsource/ibm-plex-mono/latin-400.css";
 
 @theme {
-  /* The face on the stand-in sleeve, for tracks that arrive without artwork. */
   --font-display: "Limelight", ui-serif, serif;
-  /* Everything else is set in a terminal face: this is a control panel, not a brochure. */
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
-  /* Driven at runtime by the current track's cover; saloon amber until one is playing. */
   --color-accent: var(--accent, #f59e0b);
+
+  --breakpoint-split: 680px;
 }
 
 html {
