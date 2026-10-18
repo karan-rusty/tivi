@@ -57,13 +57,15 @@ export function VolumeSlider({
   }, [armed, level, muted])
 
   const setFromPointer = useCallback(
-    (clientY: number) => {
+    (client: number) => {
       const el = rail.current
       if (!el) return
       const box = el.getBoundingClientRect()
-      onChange(Math.min(1, Math.max(0, 1 - (clientY - box.top) / box.height)))
+      const t = horizontal ? (client - box.left) / box.width : 1 - (client - box.top) / box.height
+      onChange(Math.min(1, Math.max(0, t)))
+
     },
-    [onChange],
+    [onChange, horizontal],
   )
 
   const nudge = (delta: number) => onChange(Math.min(1, Math.max(0, value + delta)))
