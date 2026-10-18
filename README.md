@@ -48,53 +48,31 @@ sequenceDiagram
 
 ## Adding music
 
-Four ways in, one pipeline: everything ends as a local file in `data/media/` and joins the library
-over the same SSE stream.
+Everything ends as a local file in `data/media/`.
 
-- A song name searches archive.org scoped to `collection:78rpm`, so every row it offers can actually
-  be played here. Picking one downloads the recording.
-- An archive.org link skips the search. The resolver takes the largest mp3 in the item, caches it,
-  and caches the label scan as the sleeve.
-- A YouTube or Spotify link is read through its oEmbed endpoint for its title and then searched by
-  that title, because the link itself cannot be streamed here.
-- A file upload takes mp3, ogg, wav, flac, m4a or aac up to 25 MB, and the library holds 60 tracks.
-  An upload carries no picture of its own, so the sleeve is looked up in the iTunes catalogue by
-  title, with a second pass against the JP store for titles that are not romanised.
-
-archive.org answers in ten seconds one moment and not at all the next, so downloads are retried
-once and the panel says so while it works. `data/` is gitignored: on an ephemeral disk the library
-is gone after a restart.
+- A song name searches archive.org scoped to `collection:78rpm`.
+- An archive.org link resolves straight away: largest mp3, label scan as the sleeve.
+- A YouTube or Spotify link is read for its title through oEmbed, then searched by that title.
+- An upload takes mp3, ogg, wav, flac, m4a or aac up to 25 MB, 60 tracks per library, and gets its
+  sleeve from the iTunes catalogue, with a JP pass for titles that are not romanised.
 
 ## The screen
 
-Left is the sleeve at real 12-inch size, with the name and the volume ladder under it. The name is
-struck twice, white and then the record's accent stepped down and right like misregistered ink.
-Right is everything you touch: the add-music box, the line, the library.
-
-- `useArtworkTheme` runs node-vibrant over the cover and sets `--accent` and `--tint` on the
-  document, so the wordmark, the progress bar and the QR card take the record's colour. It picks a
-  vibrant swatch, since averaging paper and black shellac gives grey, and lifts a dark one toward
-  white so the QR modules keep their contrast. Tapping the sleeve renders the cover as colour ASCII,
-  one character per pixel block.
-- The spectrum is a cava-style dot graph over 40Hz to 16kHz on a log scale, drawn from this device's
-  own output through a Web Audio analyser. Each band is the mean of its FFT bins, every band shares
-  one slowly falling ceiling, and each column snaps up and eases down.
-- The Join button in the Library header opens the QR over everything. The server draws it as SVG
-  from `JOIN_URL` with a minute of cache, so a restart cannot pin a stale address in a browser.
-- Under 680px the layout stacks: sleeve, line, library. Under 600px of height the spectrum hides.
+- `useArtworkTheme` takes a vibrant swatch from the cover and sets `--accent` and `--tint`, so the
+  wordmark, progress bar and QR card wear the record's colour. Tapping the sleeve shows it as colour
+  ASCII.
+- The spectrum is a cava-style dot graph, 40Hz to 16kHz, drawn from this device's own output: the
+  mean of each band's FFT bins, one shared falling ceiling, columns that snap up and ease down.
+- The QR is SVG drawn server-side from `JOIN_URL`, with a minute of cache.
 
 ## Layout
 
 ```
 shared/     types shared by both sides
 server/     Hono app: library + queue state, SSE stream, archive.org resolver, static hosting
-src/        React UI: App.tsx, Artwork.tsx (sleeve + colour ASCII), Logo.tsx, useArtworkTheme.ts, useJukebox.ts
-public/     favicon (built into dist/)
-data/       runtime library: library.json + every uploaded or fetched track and cover (gitignored)
+src/        React UI
+data/       library.json + every uploaded or fetched track and cover (gitignored)
 ```
 
-## Not built
-
-A proper request line (a YouTube link ends in an error instead of becoming a request), vote-to-skip,
-and a search over the library itself. The library is one array in `server/library.ts`, so any of
-them is additive.
+A YouTube link ends in an error instead of becoming a request, vote-to-skip is missing, and the
+library is one array in `server/library.ts`, so either is additive.
