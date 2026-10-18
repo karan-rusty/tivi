@@ -415,6 +415,17 @@ export default function App() {
               </ul>
             )
           }
+          {
+            asked && !busy && found.length === 0 && (
+              <p className="mb-2 text-xs text-neutral-500">
+                nothing playable for “{asked}”
+                {readLink
+                  ? ` — that link is “${readLink.title}”, and links from YouTube or Spotify cannot be streamed here. Only public-domain recordings can, so try the artist instead.`
+                  : ' — try fewer words, or the artist.'}
+              </p>
+            )
+          }
+          <ul className="scroll-thin min-h-0 flex-1 overflow-y-auto pr-1">
             {library.map(t => (
               <li key={t.id} className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-white/5">
                 <div className="min-w-0 flex-1">
