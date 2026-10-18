@@ -178,17 +178,8 @@ export function VolumeSlider({
           </span>
         </div>
       </div>
-      <span className={`font-mono text-[11px] tracking-[0.2em] ${muted ? 'text-neutral-600' : 'text-accent'}`}>
-        {muted ? 'MUTE' : `${String(pct).padStart(3, '0')}%`}
-      </span>
-      <button
-        type="button"
-        onClick={onToggleMute}
-        aria-label={muted ? 'Unmute' : 'Mute'}
-        className="rounded-lg border border-white/10 p-2 text-neutral-400 hover:bg-white/5 hover:text-accent"
-      >
-        {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
-      </button>
+      {readout}
+      {muteButton}
     </div>
   )
 }
