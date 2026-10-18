@@ -172,7 +172,7 @@ export function VolumeSlider({
           <span className="absolute bottom-2 left-1/2 top-2 w-px -translate-x-1/2 bg-white/10" />
           <span
             className="absolute left-1/2 h-4 w-8 -translate-x-1/2 rounded-md border border-white/15 bg-neutral-800 shadow-lg"
-            style={{ bottom: `calc(${value * 100}% - ${value * HANDLE}px)` }}
+            style={{ bottom: `calc(${value} * (100% - ${HANDLE}px))` }}
           >
             <span className="absolute left-1/2 top-1/2 h-px w-4 -translate-x-1/2 -translate-y-1/2 bg-accent" />
           </span>
