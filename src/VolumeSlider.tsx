@@ -147,9 +147,12 @@ export function VolumeSlider({
         </div>
         {readout}
       </div>
+    )
+  }
+
   return (
     <div className="flex shrink-0 select-none flex-col items-center gap-2">
-      <div className="flex h-48 items-stretch gap-2">
+      <div className={`flex h-48 items-stretch gap-2 ${className}`}>
         <div className="flex flex-col-reverse justify-between py-0.5" aria-hidden>
           {Array.from({ length: SEGMENTS }, (_, i) => (
             <span
