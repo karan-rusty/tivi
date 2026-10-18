@@ -190,8 +190,6 @@ export default function App() {
       onPointerDownCapture={gesture}
       onKeyDownCapture={gesture}
     >
-      {/* The room is lit by whatever is on the turntable: the cover blown up past the viewport,
-          blurred, and dimmed behind a scrim so the text stays readable. */}
       <div aria-hidden className="fixed inset-0 -z-30 bg-neutral-950" />
       {track?.art && (
         <img
