@@ -458,17 +458,9 @@ export default function App() {
       </main >
 
       {/* Hidden until asked for: the QR is for the room, not for whoever is reading the panel. */}
-      {joining && state && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Join this jukebox"
-          onClick={() => setJoining(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-        >
+      {
+        joining && state && (
           <div
-            onClick={e => e.stopPropagation()}
-            className="relative flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-neutral-900/95 p-5"
           >
             <button
               type="button"
