@@ -482,14 +482,15 @@ export default function App() {
               </button>
               {/* The card is the light field, so it takes the record's accent; the modules stay
                 black, because that is the part a scanner reads. */}
-            <img
-              src="/qr.svg"
-              alt=""
-              className="h-64 w-64 rounded-xl border border-accent/40 bg-white p-3"
-              style={{ background: 'color-mix(in oklab, var(--accent, #f59e0b) 40%, white)' }}
-            />
-            <p className="font-mono text-sm text-accent">{state.joinUrl}</p>
-            <p className="text-xs text-neutral-500">Scan on a phone to add music from it</p>
+              <img
+                src="/qr.svg"
+                alt=""
+                className="h-48 w-48 shrink-0 rounded-xl border border-accent/40 bg-white p-3 sm:h-64 sm:w-64"
+                style={{ background: 'color-mix(in oklab, var(--accent, #f59e0b) 40%, white)' }}
+              />
+              <p className="font-mono text-sm text-accent">{state.joinUrl}</p>
+              <p className="text-xs text-neutral-500">Scan on a phone to add music from it</p>
+            </div>
           </div>
         </div>
       )}
