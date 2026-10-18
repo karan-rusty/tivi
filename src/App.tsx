@@ -216,11 +216,9 @@ export default function App() {
             <Logo />
             <span className="text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</span>
           </div>
-          <p className="hidden text-[11px] uppercase tracking-[0.2em] text-accent/80 lg:block">Now playing</p>
-          {/* The sign and the fader sit in the record's own band, and the record is centred in it:
-              that is what lines them up with the sleeve rather than with the middle of the page. */}
-          <div className="flex min-h-0 flex-1 items-stretch gap-4 lg:gap-6">
-            <div className="hidden flex-col items-center justify-center gap-8 lg:flex">
+          <p className="standalone-label text-[11px] uppercase tracking-[0.2em] text-accent/80">Now playing</p>
+          <div className="flex min-h-0 flex-1 items-stretch gap-4 split:gap-6">
+            <div className="gutter flex-col items-center justify-center gap-6">
               <Logo vertical />
               <VolumeSlider
                 value={volume}
