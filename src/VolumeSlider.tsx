@@ -123,6 +123,30 @@ export function VolumeSlider({
       {muted ? 'MUTE' : `${String(pct).padStart(3, '0')}%`}
     </span>
   )
+
+  if (horizontal) {
+    return (
+      <div className={`flex min-w-0 flex-1 select-none items-center gap-2 ${className}`}>
+        {muteButton}
+        <div ref={rail}
+          {...sliderProps}
+          className="relative h-9 min-w-0 flex-1 cursor-ew-resize touch-none rounded-full border border-white/10 bg-black/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.85)] outline-none focus-visible:ring-1 focus-visible:ring-accent"
+          // The rungs of the meter, kept as texture so the pill reads as a fader and not a scrollbar.
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(90deg, rgba(255,255,255,0.09) 0 1px, transparent 1px 6px)',
+          }}
+        >
+          <span className='absolute bottom-2 left-3 right-3 top-2 rounded-full bg-white/5' />
+          <span className='absolute left-1/2 top-1/2 h-3 w-px -translate-x-1/2 -translate-y-1/2 rounded-md border border-white/15 bg-neutral-800 shadow-lg'
+            style={{ left: `calc(${value} * 100%)` }}
+          >
+            <span className='absolute left-1/2 top-1/2 h-3 w-px -translate-x-1/2 -translate-y-1/2 bg-accent' />
+          </span>
+
+        </div>
+        {readout}
+      </div>
   return (
     <div className="flex shrink-0 select-none flex-col items-center gap-2">
       <div className="flex h-48 items-stretch gap-2">
