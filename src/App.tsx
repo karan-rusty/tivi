@@ -186,10 +186,7 @@ export default function App() {
 
   return (
     <div
-      className="relative isolate min-h-dvh font-mono text-neutral-100 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden"
-      // Browsers only allow audio after a real gesture, so the first one anywhere in the page
-      // unlocks this device and brings up the analyser — no prompt, no button. Capture, so it
-      // fires before anything else.
+      className="relative isolate min-h-dvh font-mono text-neutral-100 split:flex split:h-dvh split:flex-col split:overflow-hidden"
       onPointerDownCapture={gesture}
       onKeyDownCapture={gesture}
     >
