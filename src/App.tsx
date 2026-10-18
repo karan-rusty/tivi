@@ -244,7 +244,7 @@ export default function App() {
           <p className="text-sm text-neutral-400">
             {track ? `${track.artist} ◆ ${track.year}` : 'Add a tune below to start the night'}
           </p>
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-3">
             <span className="tabular text-xs text-neutral-500">{clock(elapsed)}</span>
             <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
               <span
