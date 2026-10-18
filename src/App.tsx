@@ -461,13 +461,15 @@ export default function App() {
       {
         joining && state && (
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Join this jukebox"
+            onClick={() => setJoining(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           >
-            <button
-              type="button"
-              autoFocus
-              onClick={() => setJoining(false)}
-              aria-label="Close"
-              className="absolute right-3 top-3 rounded-md p-1 text-neutral-500 hover:bg-white/5 hover:text-accent"
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative flex max-h-full flex-col items-center gap-3 overflow-y-auto rounded-2xl border border-white/10 bg-neutral-900/95 p-5"
             >
               <X size={15} />
             </button>
