@@ -3,7 +3,7 @@ export type Track = {
   title: string
   artist: string
   year: number
-  /** Playable path. Built-in files sit under /tracks, anything added at runtime under /media. */
+  /** Playable path. Everything the saloon adds at runtime sits under /media. */
   src: string
   /** Cover/label scan, same origin so the browser can read its pixels. Missing for uploads. */
   art?: string
