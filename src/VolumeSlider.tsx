@@ -70,6 +70,21 @@ export function VolumeSlider({
 
   const nudge = (delta: number) => onChange(Math.min(1, Math.max(0, value + delta)))
 
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const step =
+      e.key === 'ArrowUp' || e.key === 'ArrowRight' ? 0.05
+        : e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? -0.05
+          : e.key === 'PageUp' ? 0.1
+            : e.key === 'PageDown' ? -0.1
+              : 0
+    if (step) {
+      e.preventDefault()
+      nudge(step)
+    } else if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault()
+      onChange(e.key === 'Home' ? 0 : 1)
+    }
+  }
   return (
     <div className="flex shrink-0 select-none flex-col items-center gap-2">
       <div className="flex h-48 items-stretch gap-2">
