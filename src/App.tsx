@@ -492,8 +492,8 @@ export default function App() {
               <p className="text-xs text-neutral-500">Scan on a phone to add music from it</p>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       <audio
         ref={audio}
