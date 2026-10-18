@@ -10,7 +10,7 @@ import { z } from 'zod'
 import qrcode from 'qrcode-generator'
 import { resolveArchiveLink } from './archive.ts'
 import { addTrack, library } from './library.ts'
-import { cleanTitle, searchArchive, titleOfLink } from './lookup.ts'
+import { cleanTitle, coverUrl, searchArchive, titleOfLink } from './lookup.ts'
 import type { Playing, QueueItem, Snapshot } from '../shared/types.ts'
 
 /* State lives in memory: one saloon, one night, one process. Restart = fresh room. */
@@ -125,6 +125,21 @@ const AUDIO_EXT: Record<string, string> = {
 const MAX_UPLOAD = 25 * 1024 * 1024
 const MAX_TRACKS = 60
 
+/**
+ * An uploaded file carries no picture, so the sleeve is looked up from its title and cached beside
+ * the audio. Best effort: no cover found, no art, and the UI falls back to its stand-in sleeve.
+ */
+async function saveCover(id: string, title: string) {
+  const url = await coverUrl(title)
+  if (!url) return undefined
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) }).catch(() => null)
+  if (!res?.ok || !res.headers.get('content-type')?.startsWith('image/')) return undefined
+  const bytes = Buffer.from(await res.arrayBuffer())
+  if (bytes.byteLength > 2 * 1024 * 1024) return undefined
+  writeFileSync(`data/media/${id}.jpg`, bytes)
+  return `/media/${id}.jpg`
+}
+
 app.use(
   '/api/library',
   bodyLimit({ maxSize: MAX_UPLOAD, onError: c => c.json({ error: 'that file is over 25 MB' }, 413) }),
@@ -142,12 +157,16 @@ app.post('/api/library', async c => {
   const name = `${id}.${ext}`
   mkdirSync('data/media', { recursive: true })
   writeFileSync(`data/media/${name}`, Buffer.from(await file.arrayBuffer()))
+  const stem = file.name.replace(/\.[^.]+$/, '').trim()
+  const title = stem.slice(0, 80) || 'untitled'
   const track = {
     id,
-    title: file.name.replace(/\.[^.]+$/, '').trim().slice(0, 80) || 'untitled',
+    title,
     artist: 'uploaded in the saloon',
     year: new Date().getFullYear(),
     src: `/media/${name}`,
+    // The sleeve is looked up from the whole name: the stored title may have been cut mid-word.
+    art: await saveCover(id, stem || title),
   }
   addTrack(track)
   broadcast()

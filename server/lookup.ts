@@ -71,6 +71,48 @@ export async function searchArchive(text: string): Promise<Hit[]> {
   return hits
 }
 
+const ITunes = z.object({
+  results: z.array(
+    z.object({
+      trackName: z.string().optional(),
+      artworkUrl100: z.string().optional(),
+    }),
+  ),
+})
+
+/** Spaces and punctuation differ between a filename and a catalogue entry; letters do not. */
+const bare = (text: string) => text.toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, '')
+
+async function searchCover(query: string, country?: string) {
+  const params = new URLSearchParams({ term: query, entity: 'song', limit: '5' })
+  if (country) params.set('country', country)
+  const res = await fetch(`https://itunes.apple.com/search?${params}`, {
+    signal: AbortSignal.timeout(8_000),
+  }).catch(() => null)
+  const parsed = ITunes.safeParse(res?.ok ? await res.json().catch(() => null) : null)
+  if (!parsed.success) return null
+  const wanted = bare(query)
+  for (const hit of parsed.data.results) {
+    // The catalogue says "High Forever (Marlon Hoffstadt Remix)"; the song is still "High Forever".
+    const name = bare(cleanTitle(hit.trackName ?? ''))
+    if (name.length < 2 || !wanted.includes(name) || !hit.artworkUrl100) continue
+    return hit.artworkUrl100.replace('100x100bb', '600x600bb')
+  }
+  return null
+}
+
+/**
+ * A sleeve for a file somebody handed us, which carries no picture of its own. iTunes' catalogue
+ * answers by title alone and hands back a 100px asset that is the same image as its 600px one.
+ * The match has to be the song we asked for — a wrong cover is worse than the stand-in sleeve.
+ * The second pass is for songs whose catalogue entry is in their own script, not romanised.
+ */
+export async function coverUrl(title: string): Promise<string | null> {
+  const query = sanitise(cleanTitle(title))
+  if (query.length < 2) return null
+  return (await searchCover(query)) ?? (await searchCover(query, 'JP'))
+}
+
 /**
  * The one thing we can take from a YouTube or Spotify link is what it calls itself. That is enough
  * to go and look for a playable version of the same song, and to say why we cannot play the link.
