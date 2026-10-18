@@ -294,8 +294,9 @@ export default function App() {
               }}
             />
           </div>
+          <div className="hide-short">
+            <Spectrum analyser={spectrum.analyser} online={spectrum.online} />
           </div>
-          <Spectrum analyser={spectrum.analyser} online={spectrum.online} />
         </section>
 
         <section className="flex min-h-0 flex-col">
