@@ -1,63 +1,39 @@
 # tivi
 
-A shared jukebox for the saloon. Anybody can queue a tune from their phone; one browser
-plugged into the speakers plays it. No app to install — just a URL.
+A jukebox for one room. Anybody queues a tune from their phone; the browser plugged into the
+speakers plays it. No app, no accounts, one URL.
 
-## What it does
-
-- **Library of 6 tracks** — 1920s 78s, public domain, served straight from this repo with their
-  record label scans.
-- **Anyone can add music** — upload a file off a phone, or paste an archive.org link; the server
-  caches the audio, and the track joins everyone's library instantly.
-- **Anyone can queue** — visitors hit *Add*; the queue is shared across every open tab and
-  phone through a server-sent-events stream.
-- **A screen that listens to the record** — the sleeve is shown at full size, the whole UI takes
-  its accent colour from the cover, and one tap renders it as colour ASCII.
-- **Play, pause, skip, volume** — pause/skip are shared (it is one jukebox, not six);
-  volume and mute are local to the browser you are listening on.
-- **Now playing** with a live progress bar, driven by the server's clock so every screen
-  agrees on where the song is.
-- **Survives a refresh** — a new tab picks the song up mid-play instead of restarting it.
-- **A QR code to get in** — the saloon screen shows one; a phone scans it instead of being read
-  an IP address.
+The library starts empty and the saloon fills it: upload a file off a phone, paste an archive.org
+link, or type a song name and pick from the public-domain 78s. Every screen sees the same queue and
+the same second of the same song.
 
 ## Run it
 
 ```bash
 bun install          # or: npm install
 bun run dev          # API on :8787, UI on http://localhost:5173
-```
-
-Production build (one process serves the UI, the API and the audio):
-
-```bash
 bun run build        # tsc + vite -> dist/
-bun start            # http://localhost:8787   (PORT=8080 bun start to change it)
+bun start            # http://localhost:8787, one process for UI + API + audio
 ```
 
-## Deploy the public URL
+- `PORT` moves the server off 8787.
+- `JOIN_URL` is the address the QR and the join card hand out. Left alone it uses the machine's LAN
+  IPv4, which is the address a phone can actually reach.
 
-Any host that runs a Node process works — Render, Railway, Fly, a box in the corner:
+## Deploying
 
-1. push this repo to GitHub and create a **Web Service** from it
-2. build: `npm ci && npm run build`
-3. start: `npm start`
-4. open the URL, put it on the machine wired to the speakers, hit *Add* once
+The live setup is split: UI on Vercel, API on a box, one origin from the browser's point of view.
 
-The server binds to `$PORT`, so no host-specific config is needed. State lives in memory:
-one process, no database, and a restart empties the saloon (fine for a night of requests).
+- `vercel.json` rewrites `/api/*`, `/media/*` and `/qr.svg` to the box, so the client keeps relative
+  paths and there is no CORS layer or API base URL to configure. Change the tunnel port in that file
+  and in the tunnel unit together, then rebuild the frontend.
+- On the box, `tivi.service` runs the server on :8787 with `JOIN_URL` pointing at the public URL,
+  and `tivi-tunnel.service` carries that port out through a bore tunnel.
+- One process is one room. The queue lives in memory, so a restart empties the line. The library
+  does not: it is a JSON file next to the audio.
 
-The join QR is built from the machine's LAN IPv4 address — a phone cannot reach `localhost` — so
-set `JOIN_URL` when the saloon is behind a name, a reverse proxy or a tunnel:
-
-```bash
-JOIN_URL=https://tivi.example.com bun start    # the QR and the printed address both use this
-```
-
-In dev the UI is on `:5173` while the API is on `:8787`, so the QR points at `:8787` — set
-`JOIN_URL=http://<lan-ip>:5173` (with `bun run dev`) if you want to scan it before a build.
-
-Run it on more than one instance and the queue splits across them.
+A single host that runs Node needs none of this. `bun run build && bun start` serves the UI, the API
+and the audio from one port.
 
 ## How it works
 
