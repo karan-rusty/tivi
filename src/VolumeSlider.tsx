@@ -166,21 +166,6 @@ export function VolumeSlider({
         </div>
         <div
           ref={rail}
-          role="slider"
-          tabIndex={0}
-          aria-label="Volume"
-          aria-orientation="vertical"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={pct}
-          aria-valuetext={muted ? 'muted' : `${pct}%`}
-          onPointerDown={e => {
-            e.currentTarget.setPointerCapture(e.pointerId)
-            setFromPointer(e.clientY)
-          }}
-          onPointerMove={e => {
-            if (e.buttons === 1) setFromPointer(e.clientY)
-          }}
           onKeyDown={e => {
             const step =
               e.key === 'ArrowUp' || e.key === 'ArrowRight' ? 0.05
