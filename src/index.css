@@ -39,3 +39,15 @@ html {
     display: none;
   }
 }
+
+@media (max-height: 600px) {
+  .hide-short {
+    display: none !important;
+  }
+}
+
+@media (max-height: 500px) {
+  .hide-tiny {
+    display: none !important;
+  }
+}
