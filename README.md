@@ -37,38 +37,6 @@ bun start            # http://localhost:8787, one process for UI + API + audio
 `PORT` moves the server off 8787. `JOIN_URL` is the address the QR hands out, and defaults to the
 machine's LAN IPv4.
 
-## Deploying
-
-The UI runs on Vercel and the API on a box, with the browser seeing one origin. `vercel.json`
-rewrites `/api/*`, `/media/*` and `/qr.svg` to the box, so the client keeps relative paths and there
-is no CORS layer. On the box, `tivi.service` runs the server on :8787 and `tivi-tunnel.service`
-carries that port out through a bore tunnel. The port number sits in both files, so change them
-together. A single host that runs Node needs none of this: `bun run build && bun start`.
-
-## How it plays
-
-```mermaid
-sequenceDiagram
-    participant P as Speaker tab
-    participant S as server/index.ts
-    participant C as Guest phone
-    S-->>P: SSE state {queue, playing, now}
-    S-->>C: SSE state {queue, playing, now}
-    C->>S: POST /api/queue {trackId, by}
-    S-->>P: SSE state (queue +1)
-    P->>P: play the track, seek to (now - startedAt)
-    P->>S: POST /api/next {id} when the song ends
-```
-
-- `server/index.ts` holds the state in memory and sends a snapshot to every screen over SSE at
-  `GET /api/events`. `GET /api/state` is the one-shot read.
-- `playing.startedAt` is the only clock. Position is `(pausedAt ?? now) - startedAt`, so pause just
-  shifts the start, and `now` in every snapshot cancels each client's drift. A tab that opens
-  mid-song seeks to the right second.
-- The mutations are `POST /api/queue`, `/api/next`, `/api/pause` and `DELETE /api/queue/:id`. `next`
-  carries the id the caller thinks is playing, so six open tabs do not skip six songs.
-- Volume and mute are per device. The queue and pause are shared.
-
 ## Adding music
 
 Everything ends as a local file in `data/media/`.
