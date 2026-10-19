@@ -48,25 +48,6 @@ Everything ends as a local file in `data/media/`.
   sleeve comes from the iTunes catalogue, with a second pass against the JP store for titles that
   are not romanised.
 
-## The screen
-
-- `useArtworkTheme` asks node-vibrant for the cover's vibrant swatch and sets `--accent` and
-  `--tint`, so the wordmark, progress bar and QR card take the record's colour. Tapping the sleeve
-  shows it as colour ASCII.
-- The spectrum is a cava-style dot graph from 40Hz to 16kHz, drawn from this device's own output.
-  Each band is the mean of its FFT bins, all bands share one slowly falling ceiling, and a column
-  snaps up and eases down.
-- The QR is SVG drawn server-side from `JOIN_URL`, cached for a minute.
-
-## Layout
-
-```
-shared/     types shared by both sides
-server/     Hono app: library + queue state, SSE stream, archive.org resolver, static hosting
-src/        React UI
-data/       library.json + every uploaded or fetched track and cover (gitignored)
-```
-
 ## Help
 
 - A browser will not start audio before a gesture on that device. Click or tap the speaker tab once
