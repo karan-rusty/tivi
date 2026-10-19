@@ -2,7 +2,8 @@
 
 ## Description
 
-A jukebox for one room. Anyone queues a song from their phone; the browser on the speakers plays it.
+tivi is a jukebox for one room. Guests open the site on their phone and queue a song; the browser
+plugged into the speakers plays it. The library starts empty and fills up as people add music.
 
 ## Screenshots
 
@@ -12,10 +13,13 @@ A jukebox for one room. Anyone queues a song from their phone; the browser on th
 
 ### Dependencies
 
-Bun 1.4+ (or Node 22.12+ with npm). No database; the only network calls are archive.org search and
-the iTunes catalogue.
+You need Bun 1.4+ (or Node 22.12+ when installing with npm). There is no database and nothing else
+to set up. The only network calls go to archive.org for search and the iTunes catalogue for cover
+art.
 
 ### Installing
+
+Clone the repo and install the dependencies:
 
 ```bash
 git clone https://github.com/karan-rusty/tivi.git
@@ -31,19 +35,22 @@ bun run build  # tsc + vite -> dist/
 bun start      # http://localhost:8787, UI + API + audio in one process
 ```
 
-`PORT` moves the server off 8787. `JOIN_URL` is the address the QR hands out, defaulting to the
-machine's LAN IPv4.
+`PORT` moves the server off 8787. `JOIN_URL` is the address the QR code hands out; it defaults to
+the machine's LAN IPv4.
 
 ## Adding music
 
-A name searches archive.org's 78s; an archive.org, YouTube or Spotify link works too. Uploads take
-mp3, ogg, wav, flac, m4a or aac up to 25 MB, and the library holds 60 tracks.
+Type a song name and tivi searches archive.org's 78rpm collection. You can also paste an archive.org,
+YouTube or Spotify link. To upload a file, pick an mp3, ogg, wav, flac, m4a or aac up to 25 MB. The
+library is capped at 60 tracks.
 
 ## Help
 
-- Browsers refuse audio until the page is clicked once; every later gesture retries.
-- If the QR points at the wrong address, set `JOIN_URL` and restart the server.
-- There is no request line or vote-to-skip yet; the library is one array in `server/library.ts`.
+- Audio will not start until someone clicks the page once. Browsers refuse before that; the next
+  gesture retries.
+- If the QR code points at the wrong address, set `JOIN_URL` and restart the server.
+- There is no request line and no vote-to-skip yet. The library is a single array in
+  `server/library.ts`.
 
 ## License
 
